@@ -1642,12 +1642,13 @@ func NewReason(reason uint8) *NXActionController2PropReason {
 
 type NXActionController2PropUserdata struct {
 	*PropHeader /* Type: NXAC2PT_USERDATA */
-	Userdata    uint8
-	pad         [3]uint8
+	Userdata    []byte
+	pad         []uint8
 }
 
 func (a *NXActionController2PropUserdata) Len() uint16 {
-	return a.PropHeader.Len() + 4
+	length := a.PropHeader.Len() + uint16(len(a.Userdata))
+	return 8 * ((length + 7) / 8)
 }
 
 func (a *NXActionController2PropUserdata) MarshalBinary() (data []byte, err error) {
@@ -1655,7 +1656,7 @@ func (a *NXActionController2PropUserdata) MarshalBinary() (data []byte, err erro
 	var b []byte
 	n := 0
 
-	a.Length = a.PropHeader.Len() + 1
+	a.Length = a.PropHeader.Len() + uint16(len(a.Userdata))
 	b, err = a.PropHeader.MarshalBinary()
 	if err != nil {
 		return nil, err
@@ -1663,7 +1664,7 @@ func (a *NXActionController2PropUserdata) MarshalBinary() (data []byte, err erro
 	copy(data[n:], b)
 	n += int(a.PropHeader.Len())
 
-	data[n] = a.Userdata
+	copy(data[n:], a.Userdata)
 	return
 }
 
@@ -1679,15 +1680,15 @@ func (a *NXActionController2PropUserdata) UnmarshalBinary(data []byte) error {
 	}
 	n += int(a.PropHeader.Len())
 
-	a.Userdata = data[n]
+	a.Userdata = data[n:a.Length]
 	return nil
 }
 
-func NewUserdata(userdata uint8) *NXActionController2PropUserdata {
+func NewUserdata(userdata []byte) *NXActionController2PropUserdata {
 	a := new(NXActionController2PropUserdata)
 	a.PropHeader = new(PropHeader)
 	a.Type = NXAC2PT_USERDATA
-	a.Length = a.PropHeader.Len() + 1
+	a.Length = a.PropHeader.Len() + uint16(len(a.Userdata))
 	a.Userdata = userdata
 	return a
 }
@@ -1896,8 +1897,8 @@ func (a *NXActionController2) AddReason(reason uint8) {
 	a.Length = a.Len()
 }
 
-func (a *NXActionController2) AddUserdata(userdate uint8) {
-	a.props = append(a.props, NewUserdata(userdate))
+func (a *NXActionController2) AddUserdata(userdata []byte) {
+	a.props = append(a.props, NewUserdata(userdata))
 	a.Length = a.Len()
 }
 
