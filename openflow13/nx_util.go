@@ -276,13 +276,8 @@ func NewNXRangeByOfsNBits(ofs int, nBits int) *NXRange {
 // ToUint32Mask generates a uint32 number mask from NXRange.
 func (n *NXRange) ToUint32Mask() uint32 {
 	start := n.start
+	end := n.end
 	maxLength := 32
-	var end int
-	if n.end != 0 {
-		end = n.end
-	} else {
-		end = maxLength
-	}
 	mask1 := ^uint32(0)
 	mask1 = mask1 >> uint32(maxLength-(end-n.start+1))
 	mask1 = mask1 << uint32(start)
