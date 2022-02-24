@@ -805,6 +805,20 @@ func NewVlanIdField(vlanId uint16, vlanMask *uint16) *MatchField {
 	return f
 }
 
+// Return a MatchField for non-vlan matching
+func NewNonVlanField() *MatchField {
+	f := new(MatchField)
+	f.Class = OXM_CLASS_OPENFLOW_BASIC
+	f.Field = OXM_FIELD_VLAN_VID
+	f.HasMask = false
+
+	vlanIdField := new(VlanIdField)
+	vlanIdField.VlanId = 0
+	f.Value = vlanIdField
+	f.Length = uint8(vlanIdField.Len())
+	return f
+}
+
 // MplsLabel field
 type MplsLabelField struct {
 	MplsLabel uint32
