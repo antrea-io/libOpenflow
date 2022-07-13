@@ -4,8 +4,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"log"
 	"net"
+
+	log "github.com/sirupsen/logrus"
 
 	"antrea.io/libOpenflow/util"
 )
@@ -607,6 +608,9 @@ func DecodeMatchField(class uint16, field uint8, length uint8, hasMask bool, dat
 			val = new(TcpFlagsField)
 		case OXM_FIELD_ACTSET_OUTPUT:
 			val = new(ActsetOutputField)
+		default:
+			log.Errorf("Unhandled Field: %d in Packet Register Class: %d", field, class)
+			return nil, fmt.Errorf("Bad pkt class: %v field: %v", class, field)
 		}
 		err := val.UnmarshalBinary(data)
 		if err != nil {

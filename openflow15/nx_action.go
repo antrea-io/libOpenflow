@@ -3,7 +3,10 @@ package openflow15
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"net"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // NX Action constants
@@ -176,6 +179,8 @@ func DecodeNxAction(data []byte) Action {
 	case NXAST_RAW_ENCAP:
 	case NXAST_RAW_DECAP:
 	case NXAST_DEC_NSH_TTL:
+	default:
+		log.Warningf("unknown NXActionHeader subtype: %v", data)
 	}
 	return a
 }
@@ -225,6 +230,9 @@ func (a *NXActionConjunction) UnmarshalBinary(data []byte) error {
 	n := 0
 	a.NXActionHeader = new(NXActionHeader)
 	err := a.NXActionHeader.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(a.NXActionHeader.Len())
 	if len(data) < int(a.Len()) {
 		return errors.New("the []byte is too short to unmarshal a full NXActionConjunction message")
@@ -290,6 +298,9 @@ func (a *NXActionConnTrack) UnmarshalBinary(data []byte) error {
 	n := 0
 	a.NXActionHeader = new(NXActionHeader)
 	err := a.NXActionHeader.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(a.NXActionHeader.Len())
 	if len(data) < int(a.Len()) {
 		return errors.New("the []byte is too short to unmarshal a full NXActionConnTrack message")
@@ -544,6 +555,9 @@ func (a *NXActionResubmit) UnmarshalBinary(data []byte) error {
 	n := 0
 	a.NXActionHeader = new(NXActionHeader)
 	err := a.NXActionHeader.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(a.NXActionHeader.Len())
 	if len(data) < int(a.Len()) {
 		return errors.New("the []byte is too short to unmarshal a full NXActionConjunction message")
@@ -619,6 +633,9 @@ func (a *NXActionResubmitTable) UnmarshalBinary(data []byte) error {
 	n := 0
 	a.NXActionHeader = new(NXActionHeader)
 	err := a.NXActionHeader.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(a.NXActionHeader.Len())
 	if len(data) < int(a.Len()) {
 		return errors.New("the []byte is too short to unmarshal a full NXActionResubmitTable message")
@@ -792,6 +809,9 @@ func (a *NXActionCTNAT) UnmarshalBinary(data []byte) error {
 	n := 0
 	a.NXActionHeader = new(NXActionHeader)
 	err := a.NXActionHeader.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(a.NXActionHeader.Len())
 	if len(data) < int(a.Len()) {
 		return errors.New("the []byte is too short to unmarshal a full NXActionCTNAT message")
@@ -942,6 +962,9 @@ func (a *NXActionDecTTL) UnmarshalBinary(data []byte) error {
 	n := 0
 	a.NXActionHeader = new(NXActionHeader)
 	err := a.NXActionHeader.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(a.NXActionHeader.Len())
 	if len(data) < int(a.Len()) {
 		return errors.New("the []byte is too short to unmarshal a full NXActionDecTTL message")
@@ -995,6 +1018,9 @@ func (a *NXActionDecTTLCntIDs) UnmarshalBinary(data []byte) error {
 	n := 0
 	a.NXActionHeader = new(NXActionHeader)
 	err := a.NXActionHeader.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(a.NXActionHeader.Len())
 	if len(data) < int(a.Len()) {
 		return errors.New("the []byte is too short to unmarshal a full NXActionDecTTLCntIDs message")
@@ -1807,6 +1833,9 @@ func DecodeController2Prop(data []byte) (Property, error) {
 		p = new(NXActionController2PropPause)
 	case NXAC2PT_METER_ID:
 		p = new(NXActionController2PropMeterId)
+	default:
+		err := fmt.Errorf("Unknown DecodeController2Prop type %v", data)
+		return nil, err
 	}
 	err := p.UnmarshalBinary(data)
 	if err != nil {

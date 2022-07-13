@@ -7,6 +7,8 @@ import (
 	"errors"
 
 	"antrea.io/libOpenflow/util"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // ofp_instruction_type 1.5
@@ -70,6 +72,9 @@ func DecodeInstr(data []byte) Instruction {
 	case InstrType_DEPRECATED:
 	case InstrType_STAT_TRIGGER:
 	case InstrType_EXPERIMENTER:
+	default:
+		log.Warningf("Unknown Instrheader type: %v", t)
+		return nil
 	}
 
 	a.UnmarshalBinary(data)
@@ -98,7 +103,10 @@ func (instr *InstrGotoTable) MarshalBinary() (data []byte, err error) {
 }
 
 func (instr *InstrGotoTable) UnmarshalBinary(data []byte) error {
-	instr.InstrHeader.UnmarshalBinary(data[:4])
+	err := instr.InstrHeader.UnmarshalBinary(data[:4])
+	if err != nil {
+		return err
+	}
 
 	instr.TableId = data[4]
 	copy(instr.pad, data[5:8])
@@ -145,7 +153,10 @@ func (instr *InstrWriteMetadata) MarshalBinary() (data []byte, err error) {
 }
 
 func (instr *InstrWriteMetadata) UnmarshalBinary(data []byte) error {
-	instr.InstrHeader.UnmarshalBinary(data[:4])
+	err := instr.InstrHeader.UnmarshalBinary(data[:4])
+	if err != nil {
+		return err
+	}
 
 	copy(instr.pad, data[4:8])
 	instr.Metadata = binary.BigEndian.Uint64(data[8:16])
@@ -202,7 +213,10 @@ func (instr *InstrActions) MarshalBinary() (data []byte, err error) {
 }
 
 func (instr *InstrActions) UnmarshalBinary(data []byte) error {
-	instr.InstrHeader.UnmarshalBinary(data[:4])
+	err := instr.InstrHeader.UnmarshalBinary(data[:4])
+	if err != nil {
+		return err
+	}
 
 	n := 8
 	for n < int(instr.Length) {
@@ -294,7 +308,11 @@ func (instr *InstrStatTrigger) MarshalBinary() (data []byte, err error) {
 }
 
 func (instr *InstrStatTrigger) UnmarshalBinary(data []byte) error {
-	instr.InstrHeader.UnmarshalBinary(data[:4])
+	var err error
+	err = instr.InstrHeader.UnmarshalBinary(data[:4])
+	if err != nil {
+		return err
+	}
 	instr.Flags = binary.BigEndian.Uint32(data[4:8])
 	instr.Thresholds.UnmarshalBinary(data[8:])
 

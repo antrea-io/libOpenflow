@@ -378,7 +378,10 @@ func (a *ActionPush) MarshalBinary() (data []byte, err error) {
 }
 
 func (a *ActionPush) UnmarshalBinary(data []byte) error {
-	a.ActionHeader.UnmarshalBinary(data[:4])
+	err := a.ActionHeader.UnmarshalBinary(data[:4])
+	if err != nil {
+		return err
+	}
 	a.EtherType = binary.BigEndian.Uint16(data[4:])
 	return nil
 }
@@ -414,8 +417,7 @@ func (a *ActionPopVlan) MarshalBinary() (data []byte, err error) {
 }
 
 func (a *ActionPopVlan) UnmarshalBinary(data []byte) error {
-	a.ActionHeader.UnmarshalBinary(data[:4])
-	return nil
+	return a.ActionHeader.UnmarshalBinary(data[:4])
 }
 
 type ActionPopMpls struct {
@@ -452,7 +454,10 @@ func (a *ActionPopMpls) MarshalBinary() (data []byte, err error) {
 }
 
 func (a *ActionPopMpls) UnmarshalBinary(data []byte) error {
-	a.ActionHeader.UnmarshalBinary(data[:4])
+	err := a.ActionHeader.UnmarshalBinary(data[:4])
+	if err != nil {
+		return err
+	}
 	a.EtherType = binary.BigEndian.Uint16(data[4:])
 	return nil
 }

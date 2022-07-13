@@ -130,7 +130,10 @@ func (f *FlowMod) MarshalBinary() (data []byte, err error) {
 
 func (f *FlowMod) UnmarshalBinary(data []byte) error {
 	n := 0
-	f.Header.UnmarshalBinary(data[n:])
+	err := f.Header.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(f.Header.Len())
 
 	f.Cookie = binary.BigEndian.Uint64(data[n:])
@@ -158,7 +161,10 @@ func (f *FlowMod) UnmarshalBinary(data []byte) error {
 	f.Importance = binary.BigEndian.Uint16(data[n:])
 	n += 2
 
-	f.Match.UnmarshalBinary(data[n:])
+	err = f.Match.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(f.Match.Len())
 
 	for n < int(f.Header.Length) {

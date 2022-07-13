@@ -475,6 +475,9 @@ func (p *PortMod) MarshalBinary() (data []byte, err error) {
 
 func (p *PortMod) UnmarshalBinary(data []byte) (err error) {
 	err = p.Header.UnmarshalBinary(data)
+	if err != nil {
+		return
+	}
 	n := p.Header.Len()
 
 	p.PortNo = binary.BigEndian.Uint32(data[n:])

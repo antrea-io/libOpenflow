@@ -3,6 +3,7 @@ package openflow15
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 
 	"antrea.io/libOpenflow/protocol"
 	"antrea.io/libOpenflow/util"
@@ -743,6 +744,9 @@ func DecodeContinuationProp(data []byte) (Property, error) {
 		p = new(ContinuationPropActionSet)
 	case NXCPT_ODP_PORT:
 		p = new(ContinuationPropOdpPort)
+	default:
+		err := fmt.Errorf("Unknown DecodeContinuationProp type %v", data)
+		return nil, err
 	}
 	err := p.UnmarshalBinary(data)
 	if err != nil {
@@ -1213,6 +1217,9 @@ func DecodePacketIn2Prop(data []byte) (Property, error) {
 		p = new(PacketIn2PropUserdata)
 	case NXPINT_CONTINUATION:
 		p = new(PacketIn2PropContinuation)
+	default:
+		err := fmt.Errorf("Unknown PacketIn2Prop type %v", data)
+		return nil, err
 	}
 	err := p.UnmarshalBinary(data)
 	if err != nil {
@@ -1255,7 +1262,7 @@ func (p *PacketIn2) UnmarshalBinary(data []byte) error {
 	for n < len(data) {
 		prop, err := DecodePacketIn2Prop(data[n:])
 		if err != nil {
-			break
+			return err
 		}
 		p.Props = append(p.Props, prop)
 		n += int(prop.Len())
@@ -1306,7 +1313,7 @@ func (p *Resume) UnmarshalBinary(data []byte) error {
 	for n < len(data) {
 		prop, err := DecodePacketIn2Prop(data[n:])
 		if err != nil {
-			break
+			return err
 		}
 		p.Props = append(p.Props, prop)
 		n += int(prop.Len())
@@ -1338,6 +1345,9 @@ func decodeVendorData(experimenterType uint32, data []byte) (msg util.Message, e
 		msg = new(BundleAdd)
 	case Type_PacketIn2:
 		msg = new(PacketIn2)
+	default:
+		err = fmt.Errorf("Unknown experimenterType %v", experimenterType)
+		return nil, err
 	}
 	err = msg.UnmarshalBinary(data)
 	if err != nil {

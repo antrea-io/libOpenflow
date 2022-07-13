@@ -4,6 +4,7 @@ package openflow15
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 
@@ -124,7 +125,10 @@ func (m *MeterBandDrop) MarshalBinary() (data []byte, err error) {
 
 func (m *MeterBandDrop) UnmarshalBinary(data []byte) error {
 	n := 0
-	m.MeterBandHeader.UnmarshalBinary(data[n:])
+	err := m.MeterBandHeader.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(m.MeterBandHeader.Len())
 
 	return nil
@@ -279,7 +283,10 @@ func (m *MeterMod) MarshalBinary() (data []byte, err error) {
 
 func (m *MeterMod) UnmarshalBinary(data []byte) error {
 	n := 0
-	m.Header.UnmarshalBinary(data[n:])
+	err := m.Header.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(m.Header.Len())
 
 	m.Command = binary.BigEndian.Uint16(data[n:])
@@ -291,7 +298,10 @@ func (m *MeterMod) UnmarshalBinary(data []byte) error {
 
 	for n < int(m.Header.Length) {
 		mbh := new(MeterBandHeader)
-		mbh.UnmarshalBinary(data[n:])
+		err = mbh.UnmarshalBinary(data[n:])
+		if err != nil {
+			return err
+		}
 		n += int(mbh.Len())
 		switch mbh.Type {
 		case MBT_DROP:
@@ -308,6 +318,9 @@ func (m *MeterMod) UnmarshalBinary(data []byte) error {
 			mbExp.MeterBandHeader = *mbh
 			mbExp.Experimenter = binary.BigEndian.Uint32(data[n:])
 			m.MeterBands = append(m.MeterBands, mbExp)
+		default:
+			log.Warningf("Unknown MeterBandHeader type : %v", mbh.Type)
+			return fmt.Errorf("Unknown MeterBandHeader type : %v", mbh.Type)
 		}
 		n += 4
 	}

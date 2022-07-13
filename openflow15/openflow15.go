@@ -913,6 +913,9 @@ func (s *SwitchFeatures) UnmarshalBinary(data []byte) error {
 	n := 0
 
 	err = s.Header.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n = int(s.Header.Len())
 	copy(s.DPID, data[n:])
 	n += len(s.DPID)
@@ -988,7 +991,10 @@ func (v *VendorHeader) UnmarshalBinary(data []byte) error {
 		return errors.New("The []byte the wrong size to unmarshal an " +
 			"VendorHeader message.")
 	}
-	v.Header.UnmarshalBinary(data)
+	err := v.Header.UnmarshalBinary(data)
+	if err != nil {
+		return err
+	}
 	n := int(v.Header.Len())
 	v.Vendor = binary.BigEndian.Uint32(data[n:])
 	n += 4
@@ -1269,7 +1275,10 @@ func (p *AsyncConfigPropReasons) MarshalBinary() (data []byte, err error) {
 }
 
 func (p *AsyncConfigPropReasons) UnmarshalBinary(data []byte) (err error) {
-	p.Header.UnmarshalBinary(data)
+	err = p.Header.UnmarshalBinary(data)
+	if err != nil {
+		return
+	}
 	n := p.Header.Len()
 
 	p.Mask = binary.BigEndian.Uint32(data[n:])
@@ -1314,7 +1323,10 @@ func (p *AsyncConfigPropExperimenter) MarshalBinary() (data []byte, err error) {
 }
 
 func (p *AsyncConfigPropExperimenter) UnmarshalBinary(data []byte) (err error) {
-	p.Header.UnmarshalBinary(data)
+	err = p.Header.UnmarshalBinary(data)
+	if err != nil {
+		return
+	}
 	n := p.Header.Len()
 
 	p.Experimenter = binary.BigEndian.Uint32(data[n:])
@@ -1510,7 +1522,10 @@ func (p *PropExperimenter) MarshalBinary() (data []byte, err error) {
 }
 
 func (p *PropExperimenter) UnmarshalBinary(data []byte) (err error) {
-	p.Header.UnmarshalBinary(data)
+	err = p.Header.UnmarshalBinary(data)
+	if err != nil {
+		return
+	}
 	n := p.Header.Len()
 
 	p.Experimenter = binary.BigEndian.Uint32(data[n:])

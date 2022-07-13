@@ -343,7 +343,7 @@ func TestNXActionLearn(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to UnMarshal message: %v", err)
 		}
-		if err = nsLearnEquals(oriAction, newAction); err != nil {
+		if err = nxLearnEquals(oriAction, newAction); err != nil {
 			t.Error(err)
 		}
 	}
@@ -676,7 +676,7 @@ func prepareLearnSpecs() []*NXLearnSpec {
 	}
 }
 
-func nsLearnEquals(oriAction, newAction *NXActionLearn) error {
+func nxLearnEquals(oriAction, newAction *NXActionLearn) error {
 	if oriAction.IdleTimeout != newAction.IdleTimeout {
 		return errors.New("learn idleTimeout not equal")
 	}

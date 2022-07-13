@@ -129,6 +129,9 @@ func (s *MultipartRequest) UnmarshalBinary(data []byte) error {
 			// The request body is ofp_bundle_features_request.
 			req = new(BundleFeaturesRequest)
 		case MultipartType_Experimenter:
+		default:
+			err = fmt.Errorf("Received unknown multipart type: %v", s.Type);
+			return err
 		}
 
 		if req != nil {
@@ -279,6 +282,9 @@ func (s *MultipartReply) UnmarshalBinary(data []byte) error {
 			repl = NewBundleFeatures()
 		case MultipartType_Experimenter:
 			break
+		default:
+			err = fmt.Errorf("Received unknown multipart type: %v", s.Type);
+			return err
 		}
 
 		err = repl.UnmarshalBinary(data[n:])
@@ -568,6 +574,9 @@ func (s *FlowStatsRequest) UnmarshalBinary(data []byte) error {
 	n += 8
 
 	err := s.Match.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(s.Match.Len())
 
 	return err
@@ -728,7 +737,10 @@ func (s *AggregateStatsRequest) UnmarshalBinary(data []byte) error {
 	s.CookieMask = binary.BigEndian.Uint64(data[n:])
 	n += 8
 
-	s.Match.UnmarshalBinary(data[n:])
+	err := s.Match.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
 	n += int(s.Match.Len())
 	return nil
 }
@@ -2025,6 +2037,8 @@ func (f *TableFeatures) UnmarshalBinary(data []byte) error {
 			fallthrough
 		case TFPT_EXPERIMENTER_MISS:
 			p = new(TableExperimenterProperty)
+		default:
+			return fmt.Errorf("Unknown TFPT %v", t)
 		}
 		err := p.UnmarshalBinary(data[n:])
 		if err != nil {
@@ -2759,6 +2773,7 @@ func (m *MeterDesc) UnmarshalBinary(data []byte) (err error) {
 		case MBT_EXPERIMENTER:
 			p = new(MeterBandExperimenter)
 		default:
+			return fmt.Errorf("unknown MBT: %v", binary.BigEndian.Uint16(data[n:]))
 		}
 		err = p.UnmarshalBinary(data[n:])
 		if err != nil {
