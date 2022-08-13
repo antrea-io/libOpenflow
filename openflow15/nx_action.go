@@ -174,7 +174,9 @@ func DecodeNxAction(data []byte) Action {
 		a = new(NXActionResubmitTable)
 		a.(*NXActionResubmitTable).withCT = true
 	case NXAST_RAW_ENCAP:
+		a = new(NXActionEncapsulate)
 	case NXAST_RAW_DECAP:
+		a = new(NXActionDecapsulate)
 	case NXAST_DEC_NSH_TTL:
 	}
 	return a
@@ -1920,4 +1922,143 @@ func NewNXActionController2() *NXActionController2 {
 	a := new(NXActionController2)
 	a.NXActionHeader = NewNxActionHeader(NXAST_CONTROLLER2)
 	return a
+}
+
+type PropTLV struct {
+    Class   uint16
+    TlvType uint8
+    Length  uint8
+}
+
+func (a *PropTLV) Len() (n uint16) {
+    return 4
+}
+
+func (p *PropTLV) MarshalBinary() (data []byte, err error) {
+    data = make([]byte, p.Len())
+    binary.BigEndian.PutUint16(data[:2], p.Class)
+    data[2] = p.TlvType
+    data[3] = p.Length
+    return
+}
+
+func (p *PropTLV) UnmarshalBinary(data []byte) error {
+    if len(data) < int(p.Len()) {
+      return errors.New("the []byte the wrong size to unmarshal an " +
+      "PropTLV message")
+    }
+    p.Class = binary.BigEndian.Uint16(data[:2])
+    p.TlvType = data[2]
+    p.Length = data[3]
+    return nil
+}
+
+type NXActionEncapsulate struct {
+    *NXActionHeader
+    HeaderSize uint16
+    HeaderType uint32
+    Property   []PropTLV
+}
+
+func NewNXActionEncapsulate(headerSize uint16, headerType uint32, property []PropTLV) *NXActionEncapsulate {
+    a := new(NXActionEncapsulate)
+    a.NXActionHeader = NewNxActionHeader(NXAST_RAW_ENCAP)
+    a.Length = 16
+    a.HeaderSize = headerSize
+    a.HeaderType = headerType
+    a.Property = property
+    return a
+}
+
+func (a *NXActionEncapsulate) Len() (n uint16) {
+    n = a.NXActionHeader.Len() + 6
+    for _, prop := range a.Property {
+        n += prop.Len()
+    }
+    return n
+}
+
+func (a *NXActionEncapsulate) MarshalBinary() (data []byte, err error) {
+    data = make([]byte, a.Len())
+    var b []byte
+    n := 0
+
+    b, err = a.NXActionHeader.MarshalBinary()
+    copy(data[n:], b)
+    n += len(b)
+    binary.BigEndian.PutUint16(data[n:], a.HeaderSize)
+    n += 2
+    binary.BigEndian.PutUint32(data[n:], a.HeaderType)
+    n += 4
+    for _, prop := range a.Property {
+        b, err = prop.MarshalBinary()
+        if err != nil {
+        return nil, err
+    }
+    copy(data[n:], b)
+    n += int(prop.Len())
+    }
+    return
+}
+
+func (a *NXActionEncapsulate) UnmarshalBinary(data []byte) error {
+    n := 0
+    a.NXActionHeader = new(NXActionHeader)
+    err := a.NXActionHeader.UnmarshalBinary(data[n:])
+    if err != nil {
+        return errors.New("failed to unmarshal header")
+    }
+    n += int(a.NXActionHeader.Len())
+    if len(data) < int(a.Len()) {
+        return errors.New("the []byte is too short to unmarshal a full NXActionConjunction message")
+    }
+    a.HeaderSize = binary.BigEndian.Uint16(data[n:])
+    n += 2
+    a.HeaderType = binary.BigEndian.Uint32(data[n:])
+    n += 4
+    var prop PropTLV
+    for n < int(a.Length) {
+        err := prop.UnmarshalBinary(data[n:])
+        if err != nil {
+            return errors.New("failed to unmarshal property")
+        }
+        a.Property = append(a.Property, prop)
+        n += int(prop.Len())
+    }
+    return nil
+}
+
+type NXActionDecapsulate struct {
+    *NXActionHeader
+    pad        []byte // 2 bytes
+    HeaderType uint32
+}
+
+func NewNXActionDecapsulate(headerType uint32) *NXActionDecapsulate {
+    a := new(NXActionDecapsulate)
+    a.NXActionHeader = NewNxActionHeader(NXAST_RAW_DECAP)
+    a.Length = 16
+    a.pad = make([]byte, 2)
+    a.HeaderType = headerType
+    return a
+}
+
+func (a *NXActionDecapsulate) Len() (n uint16) {
+    return a.Length
+}
+
+func (a *NXActionDecapsulate) MarshalBinary() (data []byte, err error) {
+    data = make([]byte, a.Len())
+    var b []byte
+    n := 0
+
+    b, err = a.NXActionHeader.MarshalBinary()
+    copy(data[n:], b)
+    n += len(b)
+
+    // Skip padding copy, move the index.
+    n += 2
+    binary.BigEndian.PutUint32(data[n:], a.HeaderType)
+    n += 4
+    return
 }
