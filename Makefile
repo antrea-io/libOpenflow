@@ -4,7 +4,7 @@ all: test
 
 .PHONY: test
 test:
-	$(GO) test -v ./...
+	$(GO) test -v -coverprofile coverage.txt -covermode=atomic -coverpkg=antrea.io/libOpenflow/common/...,antrea.io/libOpenflow/openflow15/...,antrea.io/libOpenflow/protocol/...,antrea.io/libOpenflow/util/...  antrea.io/libOpenflow/...
 
 # code linting
 .golangci-bin:
