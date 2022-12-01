@@ -827,7 +827,7 @@ const (
 	ACFC_EPERM
 )
 
-//  ofp_flow_monitor_failed_code
+// ofp_flow_monitor_failed_code
 const (
 	MOFC_UNKNOWN = iota
 	MOFC_MONITOR_EXISTS

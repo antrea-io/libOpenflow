@@ -77,7 +77,7 @@ const (
 const (
 	DHCP_FLAG_BROADCAST uint16 = 0x80
 
-//	FLAG_BROADCAST_MASK uint16 = (1 << FLAG_BROADCAST)
+// FLAG_BROADCAST_MASK uint16 = (1 << FLAG_BROADCAST)
 )
 
 func getRandomXID() (uint32, error) {

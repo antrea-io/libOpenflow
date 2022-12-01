@@ -19,6 +19,3 @@ linters:
     - goimports
     - gosec
     - misspell
-
-run:
-  deadline: 5m
