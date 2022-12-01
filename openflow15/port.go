@@ -17,7 +17,6 @@ type Port struct {
 	Length uint16
 	Pad    []byte // 2 bytes
 	HWAddr net.HardwareAddr
-	pad2   []byte // 2 bytes for 64bit alignment
 	Name   []byte // Size 16
 
 	Config     uint32

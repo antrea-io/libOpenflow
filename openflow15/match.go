@@ -130,7 +130,7 @@ func (m *MatchField) MarshalBinary() (data []byte, err error) {
 	if m.HasMask {
 		fld = (m.Field << 1) | 0x1
 	} else {
-		fld = (m.Field << 1) | 0x0
+		fld = m.Field << 1
 	}
 	data[n] = fld
 	n += 1
@@ -276,7 +276,7 @@ func (o *OxmId) MarshalBinary() (data []byte, err error) {
 	if o.HasMask {
 		fld = (o.Field << 1) | 0x1
 	} else {
-		fld = (o.Field << 1) | 0x0
+		fld = o.Field << 1
 	}
 	data[n] = fld
 	n += 1

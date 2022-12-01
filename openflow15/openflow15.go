@@ -827,7 +827,7 @@ const (
 	ACFC_EPERM
 )
 
-//  ofp_flow_monitor_failed_code
+// ofp_flow_monitor_failed_code
 const (
 	MOFC_UNKNOWN = iota
 	MOFC_MONITOR_EXISTS
@@ -1030,7 +1030,6 @@ type RoleRequest struct {
 	common.Header
 	Role         uint32
 	Shortid      uint16
-	pad          uint16
 	GenerationId uint64
 }
 type RoleReply = RoleRequest

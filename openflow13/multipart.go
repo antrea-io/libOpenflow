@@ -15,7 +15,6 @@ type MultipartRequest struct {
 	common.Header
 	Type  uint16
 	Flags uint16
-	pad   []byte // 4 bytes
 	Body  []util.Message
 }
 
@@ -103,7 +102,6 @@ type MultipartReply struct {
 	common.Header
 	Type  uint16
 	Flags uint16
-	pad   []byte // 4 bytes
 	Body  []util.Message
 }
 
@@ -1324,7 +1322,6 @@ type OFPTableFeatures struct {
 	Length        uint16
 	TableID       uint8
 	Command       uint8
-	pad           [4]uint8
 	Name          [32]byte
 	MetadataMatch uint64
 	MetadataWrite uint64
@@ -1350,6 +1347,7 @@ func (f *OFPTableFeatures) MarshalBinary() (data []byte, err error) {
 	n += 1
 	data[n] = f.Command
 	n += 1
+	// 4 bytes for padding
 	n += 4
 	copy(data[n:], f.Name[:32])
 	n += 32

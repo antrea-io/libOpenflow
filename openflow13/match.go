@@ -127,7 +127,7 @@ func (m *MatchField) MarshalBinary() (data []byte, err error) {
 	if m.HasMask {
 		fld = (m.Field << 1) | 0x1
 	} else {
-		fld = (m.Field << 1) | 0x0
+		fld = m.Field << 1
 	}
 	data[n] = fld
 	n += 1
@@ -477,7 +477,7 @@ func DecodeMatchField(class uint16, field uint8, length uint8, hasMask bool, dat
 	return nil, nil
 }
 
-//  ofp_match_type 1.3
+// ofp_match_type 1.3
 const (
 	MatchType_Standard = iota /* Deprecated. */
 	MatchType_OXM

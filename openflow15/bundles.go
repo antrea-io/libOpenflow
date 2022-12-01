@@ -168,7 +168,6 @@ func NewBundlePropertyExperimenter() *BundlePropertyExperimenter {
 // it, if the added messages are not wanted to realize on the switch.
 type BundleAdd struct {
 	BundleID   uint32
-	pad        [2]byte
 	Flags      uint16
 	Message    util.Message
 	Properties []BundlePropertyExperimenter
@@ -176,7 +175,8 @@ type BundleAdd struct {
 
 func (b *BundleAdd) Len() (n uint16) {
 	length := uint16(unsafe.Sizeof(b.BundleID) + unsafe.Sizeof(b.Flags))
-	length += uint16(len(b.pad))
+	// 2 bytes for padding
+	length += 2
 	length += b.Message.Len()
 	if b.Properties != nil {
 		for _, p := range b.Properties {

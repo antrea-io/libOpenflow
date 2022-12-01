@@ -27,8 +27,6 @@ type FlowMod struct {
 	OutGroup uint32
 	Flags    uint16
 
-	pad []byte // 2bytes
-
 	Match        Match         // Fields to match
 	Instructions []Instruction //  Instruction set - 0 or more.
 }

@@ -96,7 +96,6 @@ func (m *MeterBandHeader) UnmarshalBinary(data []byte) error {
 // ofp_meter_band_drop
 type MeterBandDrop struct {
 	MeterBandHeader /* Type: OFPMBT_DROP. */
-	pad             [4]uint8
 }
 
 func NewMeterBandDrop() *MeterBandDrop {
@@ -135,7 +134,6 @@ func (m *MeterBandDrop) UnmarshalBinary(data []byte) error {
 type MeterBandDSCP struct {
 	MeterBandHeader       /* Type: OFPMBT_DSCP_REMARK. */
 	PrecLevel       uint8 /* Number of drop precedence level to add. */
-	pad             [3]uint8
 }
 
 func NewMeterBandDSCP() *MeterBandDSCP {

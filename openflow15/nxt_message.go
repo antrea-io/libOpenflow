@@ -82,16 +82,16 @@ func NewSetPacketInFormet(format uint32) *VendorHeader {
 }
 
 type ControllerID struct {
-	pad [6]byte
-	ID  uint16
+	ID uint16
 }
 
 func (c *ControllerID) Len() uint16 {
-	return uint16(len(c.pad) + 2)
+	return 8
 }
 
 func (c *ControllerID) MarshalBinary() (data []byte, err error) {
 	data = make([]byte, int(c.Len()))
+	// 6 bytes for padding
 	n := 6
 	binary.BigEndian.PutUint16(data[n:], c.ID)
 	return data, nil
@@ -119,11 +119,10 @@ type TLVTableMap struct {
 	OptType   uint8
 	OptLength uint8
 	Index     uint16
-	pad       [2]byte
 }
 
 func (t *TLVTableMap) Len() uint16 {
-	return uint16(len(t.pad) + 6)
+	return 8
 }
 
 func (t *TLVTableMap) MarshalBinary() (data []byte, err error) {
@@ -156,7 +155,6 @@ func (t *TLVTableMap) UnmarshalBinary(data []byte) error {
 
 type TLVTableMod struct {
 	Command uint16
-	pad     [6]byte
 	TlvMaps []*TLVTableMap
 }
 
@@ -173,6 +171,7 @@ func (t *TLVTableMod) MarshalBinary() (data []byte, err error) {
 	n := 0
 	binary.BigEndian.PutUint16(data[n:], t.Command)
 	n += 2
+	// 6 bytes for padding
 	n += 6
 	for _, tlvMap := range t.TlvMaps {
 		tlvData, err := tlvMap.MarshalBinary()
@@ -296,7 +295,6 @@ const (
 type ContinuationPropBridge struct {
 	*PropHeader /* Type: NXCPT_BRIDGE */
 	Bridge      [4]uint32
-	pad         [4]uint8
 }
 
 func (p *ContinuationPropBridge) Len() (n uint16) {
@@ -345,7 +343,6 @@ func (p *ContinuationPropBridge) UnmarshalBinary(data []byte) error {
 type ContinuationPropStack struct {
 	*PropHeader /* Type: NXCPT_STACK */
 	Stack       []uint8
-	pad         []uint8
 }
 
 func (p *ContinuationPropStack) Len() (n uint16) {
@@ -434,7 +431,6 @@ func (p *ContinuationPropMirrors) UnmarshalBinary(data []byte) error {
 
 type ContinuationPropConntracked struct {
 	*PropHeader /* Type: NXCPT_CONNTRACKED */
-	pad         [4]uint8
 }
 
 func (p *ContinuationPropConntracked) Len() (n uint16) {
@@ -473,7 +469,6 @@ func (p *ContinuationPropConntracked) UnmarshalBinary(data []byte) error {
 type ContinuationPropTableID struct {
 	*PropHeader /* Type: NXCPT_TABLE_ID */
 	TableID     uint8
-	pad         [3]uint8
 }
 
 func (p *ContinuationPropTableID) Len() (n uint16) {
@@ -515,7 +510,6 @@ func (p *ContinuationPropTableID) UnmarshalBinary(data []byte) error {
 
 type ContinuationPropCookie struct {
 	*PropHeader /* Type: NXCPT_COOKIE */
-	pad         [4]uint8
 	Cookie      uint64
 }
 
@@ -558,7 +552,6 @@ func (p *ContinuationPropCookie) UnmarshalBinary(data []byte) error {
 
 type ContinuationPropActions struct {
 	*PropHeader /* Type: NXCPT_ACTIONS */
-	pad         [4]uint8
 	Actions     []Action
 }
 
@@ -622,7 +615,6 @@ func (p *ContinuationPropActions) UnmarshalBinary(data []byte) error {
 
 type ContinuationPropActionSet struct {
 	*PropHeader /* Type: NXCPT_ACTION_SET */
-	pad         [4]uint8
 	ActionSet   []Action
 }
 
@@ -646,6 +638,7 @@ func (p *ContinuationPropActionSet) MarshalBinary() (data []byte, err error) {
 	}
 	copy(data[n:], b)
 	n += int(p.PropHeader.Len())
+	// 4 bytes for padding
 	n += 4
 
 	for _, action := range p.ActionSet {
@@ -779,7 +772,6 @@ const (
 type PacketIn2PropPacket struct {
 	*PropHeader
 	Packet protocol.Ethernet
-	pad    []uint8
 }
 
 func (p *PacketIn2PropPacket) Len() (n uint16) {
@@ -916,7 +908,6 @@ func (p *PacketIn2PropBufferID) UnmarshalBinary(data []byte) error {
 type PacketIn2PropTableID struct {
 	*PropHeader /* Type: NXPINT_TABLE_ID */
 	TableID     uint8
-	pad         [3]uint8
 }
 
 func (p *PacketIn2PropTableID) Len() (n uint16) {
@@ -958,7 +949,6 @@ func (p *PacketIn2PropTableID) UnmarshalBinary(data []byte) error {
 
 type PacketIn2PropCookie struct {
 	*PropHeader /* Type: NXPINT_COOKIE */
-	pad         [4]uint8
 	Cookie      uint64
 }
 
@@ -978,6 +968,7 @@ func (p *PacketIn2PropCookie) MarshalBinary() (data []byte, err error) {
 	}
 	copy(data[n:], b)
 	n += int(p.PropHeader.Len())
+	// 4 bytes for padding
 	n += 4
 
 	binary.BigEndian.PutUint64(data[n:], p.Cookie)
@@ -1004,7 +995,6 @@ func (p *PacketIn2PropCookie) UnmarshalBinary(data []byte) error {
 type PacketIn2PropReason struct {
 	*PropHeader /* Type: NXPINT_COOKIE */
 	Reason      uint8
-	pad         [3]uint8
 }
 
 func (p *PacketIn2PropReason) Len() (n uint16) {
@@ -1016,6 +1006,7 @@ func (p *PacketIn2PropReason) MarshalBinary() (data []byte, err error) {
 	var b []byte
 	n := 0
 
+	// 1 byte for padding
 	p.Length = p.PropHeader.Len() + 1
 	b, err = p.PropHeader.MarshalBinary()
 	if err != nil {
@@ -1047,7 +1038,6 @@ func (p *PacketIn2PropReason) UnmarshalBinary(data []byte) error {
 type PacketIn2PropMetadata struct {
 	*PropHeader /* Type: NXPINT_METADATA */
 	Fields      []MatchField
-	pad         []uint8
 }
 
 func (p *PacketIn2PropMetadata) Len() (n uint16) {
@@ -1113,7 +1103,6 @@ func (p *PacketIn2PropMetadata) UnmarshalBinary(data []byte) error {
 type PacketIn2PropUserdata struct {
 	*PropHeader /* Type: NXPINT_USERDATA */
 	Userdata    []uint8
-	pad         []uint8
 }
 
 func (p *PacketIn2PropUserdata) Len() (n uint16) {
@@ -1158,7 +1147,6 @@ func (p *PacketIn2PropUserdata) UnmarshalBinary(data []byte) error {
 type PacketIn2PropContinuation struct {
 	*PropHeader  /* Type: NXPINT_CONTINUATION */
 	Continuation []byte
-	pad          []uint8
 }
 
 func (p *PacketIn2PropContinuation) Len() (n uint16) {

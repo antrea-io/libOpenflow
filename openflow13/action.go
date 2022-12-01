@@ -276,7 +276,31 @@ func (a *ActionGroup) UnmarshalBinary(data []byte) error {
 type ActionMplsTtl struct {
 	ActionHeader
 	MplsTtl uint8
-	pad     []byte // 3bytes
+}
+
+func (a *ActionMplsTtl) Len() uint16 {
+	return a.ActionHeader.Len() + 4
+}
+
+func (a *ActionMplsTtl) MarshalBinary() (data []byte, err error) {
+	data, err = a.ActionHeader.MarshalBinary()
+	if err != nil {
+		return
+	}
+	n := int(a.ActionHeader.Len())
+	data[n] = a.MplsTtl
+	return
+}
+
+func (a *ActionMplsTtl) UnmarshalBinary(data []byte) error {
+	n := 0
+	err := a.ActionHeader.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
+	n += int(a.ActionHeader.Len())
+	a.MplsTtl = data[n]
+	return nil
 }
 
 type ActionDecNwTtl struct {
@@ -315,13 +339,36 @@ func (a *ActionDecNwTtl) UnmarshalBinary(data []byte) error {
 type ActionNwTtl struct {
 	ActionHeader
 	NwTtl uint8
-	pad   []byte // 3bytes
+}
+
+func (a *ActionNwTtl) Len() uint16 {
+	return a.ActionHeader.Len() + 4
+}
+
+func (a *ActionNwTtl) MarshalBinary() (data []byte, err error) {
+	data, err = a.ActionHeader.MarshalBinary()
+	if err != nil {
+		return
+	}
+	n := int(a.ActionHeader.Len())
+	data[n] = a.NwTtl
+	return
+}
+
+func (a *ActionNwTtl) UnmarshalBinary(data []byte) error {
+	n := 0
+	err := a.ActionHeader.UnmarshalBinary(data[n:])
+	if err != nil {
+		return err
+	}
+	n += int(a.ActionHeader.Len())
+	a.NwTtl = data[n]
+	return nil
 }
 
 type ActionPush struct {
 	ActionHeader
 	EtherType uint16
-	pad       []byte // 2bytes
 }
 
 func NewActionPushVlan(etherType uint16) *ActionPush {
@@ -362,7 +409,6 @@ func (a *ActionPush) UnmarshalBinary(data []byte) error {
 
 type ActionPopVlan struct {
 	ActionHeader
-	pad []byte // 4bytes
 }
 
 func NewActionPopVlan() *ActionPopVlan {
@@ -395,7 +441,6 @@ func (a *ActionPopVlan) UnmarshalBinary(data []byte) error {
 type ActionPopMpls struct {
 	ActionHeader
 	EtherType uint16
-	pad       []byte // 2bytes
 }
 
 func NewActionPopMpls(etherType uint16) *ActionPopMpls {
