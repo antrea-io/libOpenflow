@@ -11,12 +11,12 @@ jobs:
   test:
     runs-on: [ubuntu-latest]
     steps:
-    - name: Set up Go 1.15
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.15
     - name: Check-out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+    - name: Set up Go using version from go.mod
+      uses: actions/setup-go@v3
+      with:
+        go-version-file: 'go.mod'
     - name: Run unit tests
       run: |
         make test
@@ -24,12 +24,12 @@ jobs:
   tidy:
     runs-on: [ubuntu-latest]
     steps:
-    - name: Set up Go 1.15
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.15
     - name: Check-out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+    - name: Set up Go using version from go.mod
+      uses: actions/setup-go@v3
+      with:
+        go-version-file: 'go.mod'
     - name: Check tidiness
       run: |
         ./ci/check-tidy.sh
@@ -38,7 +38,7 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
     - name: Check-out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Run code linters
       run: |
         make golangci
