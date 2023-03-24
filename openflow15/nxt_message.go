@@ -73,7 +73,7 @@ func (p *PacketInFormat) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-func NewSetPacketInFormet(format uint32) *VendorHeader {
+func NewSetPacketInFormat(format uint32) *VendorHeader {
 	msg := NewNXTVendorHeader(Type_SetPacketInFormat)
 	msg.VendorData = &PacketInFormat{
 		Spif: format,
