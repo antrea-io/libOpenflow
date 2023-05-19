@@ -44,7 +44,9 @@ func NewIPv4() *IPv4 {
 }
 
 func (i *IPv4) Len() (n uint16) {
-	i.IHL = 5
+	if i.IHL < 5 {
+		i.IHL = 5
+	}
 	if i.Data != nil {
 		return uint16(i.IHL*4) + i.Data.Len()
 	}
