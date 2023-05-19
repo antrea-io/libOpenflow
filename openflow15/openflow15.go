@@ -112,7 +112,7 @@ const (
 )
 
 func Parse(b []byte) (message util.Message, err error) {
-	klog.V(4).InfoS("Openflow15 parse", "bytes", b)
+	klog.V(7).InfoS("Parsing Openflow15 message", "dataLength", len(b), "data", b)
 	switch b[1] {
 	case Type_Error:
 		errMsg := new(ErrorMsg)
@@ -198,7 +198,7 @@ func Parse(b []byte) (message util.Message, err error) {
 	if message != nil {
 		err = message.UnmarshalBinary(b)
 	}
-	klog.V(4).InfoS("Parsing result", "error", err, "message", message)
+	klog.V(7).InfoS("Parsed Openflow15 message", "error", err, "message", message)
 	return
 }
 
@@ -2239,7 +2239,7 @@ func (c *BndleAdd) MarshalBinary() (data []byte, err error) {
 	if err != nil {
 		return
 	}
-	klog.V(4).InfoS("BndleAdd MarshalBinary", "Header", c.Header)
+	klog.V(7).InfoS("BndleAdd MarshalBinary", "Header", c.Header)
 	var n uint16
 	copy(data[n:], b)
 	n = c.Header.Len()

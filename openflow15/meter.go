@@ -268,10 +268,9 @@ func (m *MeterMod) MarshalBinary() (data []byte, err error) {
 		}
 		copy(data[n:], mbBytes)
 		n += METER_BAND_LEN
-		klog.V(4).InfoS("Metermod band", "bytes", mbBytes)
 	}
 
-	klog.V(4).InfoS("Metermod MarshalBinary succeeded", "dataLength", len(data), "data", data)
+	klog.V(7).InfoS("Metermod MarshalBinary succeeded", "dataLength", len(data), "data", data)
 
 	return
 }

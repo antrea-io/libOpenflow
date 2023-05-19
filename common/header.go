@@ -63,7 +63,7 @@ func (h *Header) UnmarshalBinary(data []byte) error {
 	h.Length = binary.BigEndian.Uint16(data[2:4])
 	h.Xid = binary.BigEndian.Uint32(data[4:8])
 
-	klog.V(4).InfoS("UnmarshalBinary", "Header", h)
+	klog.V(7).InfoS("Header UnmarshalBinary", "Header", h)
 	return nil
 }
 

@@ -125,7 +125,12 @@ func (m *MessageStream) outbound() {
 				m.Shutdown <- true
 			}
 
-			klog.V(4).InfoS("Sent", "dataLength", len(data), "data", len(data), data)
+			// Only log the data with loglevel >= 7.
+			if klogV := klog.V(7); klogV.Enabled() {
+				klogV.InfoS("Sent outbound message", "dataLength", len(data), "data", data)
+			} else {
+				klog.V(4).InfoS("Sent outbound message", "dataLength", len(data))
+			}
 		}
 	}
 }

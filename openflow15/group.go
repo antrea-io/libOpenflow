@@ -127,7 +127,6 @@ func (g *GroupMod) MarshalBinary() (data []byte, err error) {
 		}
 		data = append(data, bytes...)
 		g.BucketArrayLen += bkt.Len()
-		klog.V(4).InfoS("Groupmod bucket", "bytes", bytes)
 	}
 
 	for _, p := range g.Properties {
@@ -137,8 +136,8 @@ func (g *GroupMod) MarshalBinary() (data []byte, err error) {
 		}
 		data = append(data, bytes...)
 	}
-	klog.V(4).InfoS("GroupMod MarshalBinary succeeded", "dataLength", len(data), "data", data)
 
+	klog.V(7).InfoS("GroupMod MarshalBinary succeeded", "dataLength", len(data), "data", data)
 	return
 }
 

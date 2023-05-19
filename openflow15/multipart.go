@@ -51,7 +51,7 @@ func (s *MultipartRequest) MarshalBinary() (data []byte, err error) {
 		data = append(data, b...)
 	}
 
-	klog.V(4).InfoS("Sending MultipartRequest succeeded", "dataLength", len(data), "data", data)
+	klog.V(7).InfoS("MultipartRequest MarshalBinary succeeded", "dataLength", len(data), "data", data)
 
 	return
 }
@@ -2177,10 +2177,10 @@ func (f *FlowDesc) UnmarshalBinary(data []byte) (err error) {
 		return
 	}
 	m_len := f.Match.Len()
-	klog.V(4).InfoS("Match Len", "value", m_len)
+	klog.V(7).InfoS("Match Len", "value", m_len)
 	n += m_len
 
-	klog.V(4).InfoS("Data passed to Stats UnmarshalBinary", "data", data[n:])
+	klog.V(7).InfoS("Data passed to Stats UnmarshalBinary", "data", data[n:])
 	err = f.Stats.UnmarshalBinary(data[n:])
 	if err != nil {
 		klog.ErrorS(err, "Failed to unmarshal FlowDesc's Stats", "data", data[n:])

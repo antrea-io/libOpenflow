@@ -121,10 +121,9 @@ func (f *FlowMod) MarshalBinary() (data []byte, err error) {
 			return
 		}
 		data = append(data, bytes...)
-		klog.V(4).InfoS("flowmod instr", "bytes", bytes)
 	}
 
-	klog.V(4).InfoS("Flowmod MarshalBinary succeeded", "dataLength", len(data), "data", data)
+	klog.V(7).InfoS("Flowmod MarshalBinary succeeded", "dataLength", len(data), "data", data)
 	return
 }
 
