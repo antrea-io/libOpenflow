@@ -128,9 +128,11 @@ func (i *IPv6) UnmarshalBinary(data []byte) error {
 	n += 1
 	i.HopLimit = data[n]
 	n += 1
-	i.NWSrc = data[n : n+16]
+	i.NWSrc = make([]byte, 16)
+	copy(i.NWSrc, data[n:n+16])
 	n += 16
-	i.NWDst = data[n : n+16]
+	i.NWDst = make([]byte, 16)
+	copy(i.NWDst, data[n:n+16])
 	n += 16
 
 	checkExtHeader := true

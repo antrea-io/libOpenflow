@@ -80,7 +80,8 @@ func (m *ByteArrayField) UnmarshalBinary(data []byte) error {
 	if len(data) < int(expectLength) {
 		return errors.New("The byte array has wrong size to unmarshal ByteArrayField message")
 	}
-	m.Data = data[:expectLength]
+	m.Data = make([]byte, expectLength)
+	copy(m.Data, data[:expectLength])
 	return nil
 }
 

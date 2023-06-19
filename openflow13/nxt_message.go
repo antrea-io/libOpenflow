@@ -1126,7 +1126,8 @@ func (p *PacketIn2PropUserdata) UnmarshalBinary(data []byte) error {
 	}
 	n += int(p.PropHeader.Len())
 
-	p.Userdata = data[n:p.Length]
+	p.Userdata = make([]byte, int(p.Length)-n)
+	copy(p.Userdata, data[n:p.Length])
 	return nil
 }
 
@@ -1168,8 +1169,8 @@ func (p *PacketIn2PropContinuation) UnmarshalBinary(data []byte) error {
 		return errors.New("the []byte is too short to unmarshal a full PacketIn2PropContinuation message")
 	}
 	n += int(p.PropHeader.Len())
-
-	p.Continuation = data[n:p.Length]
+	p.Continuation = make([]byte, int(p.Length)-n)
+	copy(p.Continuation, data[n:p.Length])
 	return nil
 }
 

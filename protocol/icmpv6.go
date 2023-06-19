@@ -220,7 +220,8 @@ func (m *MLD) UnmarshalBinary(data []byte) error {
 	m.MaxResponse = binary.BigEndian.Uint16(data[n:])
 	n += 2
 	n += 2
-	m.MulticastAddress = data[n : n+16]
+	m.MulticastAddress = make([]byte, 16)
+	copy(m.MulticastAddress, data[n:n+16])
 	return nil
 }
 
@@ -358,7 +359,8 @@ func (q *MLDQuery) UnmarshalBinary(data []byte) error {
 	q.MaxResponse = binary.BigEndian.Uint16(data[n:])
 	n += 2
 	n += 2
-	q.MulticastAddress = data[n : n+16]
+	q.MulticastAddress = make([]byte, 16)
+	copy(q.MulticastAddress, data[n:n+16])
 	n += 16
 	q.Version2 = len(data) > 28
 	if q.Version2 {
@@ -603,7 +605,8 @@ func (r *MLDv2Record) UnmarshalBinary(data []byte) error {
 	n += 1
 	r.NumberOfSources = binary.BigEndian.Uint16(data[n:])
 	n += 2
-	r.MulticastAddress = data[n : n+16]
+	r.MulticastAddress = make([]byte, 16)
+	copy(r.MulticastAddress, data[n:n+16])
 	n += 16
 	if len(data) < int(r.Len()) {
 		return fmt.Errorf("The []byte is too short to unmarshal a full MLDv2Record message.")

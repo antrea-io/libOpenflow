@@ -1188,7 +1188,8 @@ func (s *NXLearnSpec) UnmarshalBinary(data []byte) error {
 	n := s.Header.Len()
 	if s.Header.src {
 		srcDataLength := 2 * ((s.Header.nBits + 15) / 16)
-		s.SrcValue = data[n : n+srcDataLength]
+		s.SrcValue = make([]byte, srcDataLength)
+		copy(s.SrcValue, data[n:n+srcDataLength])
 		n += srcDataLength
 	} else {
 		s.SrcField = new(NXLearnSpecField)
@@ -1350,7 +1351,8 @@ func (a *NXActionNote) UnmarshalBinary(data []byte) error {
 		return errors.New("the []byte is too short to unmarshal a full NXActionNote message")
 	}
 	n := a.NXActionHeader.Len()
-	a.Note = data[n:a.Length]
+	a.Note = make([]byte, int(a.Length-n))
+	copy(a.Note, data[n:a.Length])
 	return nil
 }
 
@@ -1674,7 +1676,8 @@ func (a *NXActionController2PropUserdata) UnmarshalBinary(data []byte) error {
 	}
 	n += int(a.PropHeader.Len())
 
-	a.Userdata = data[n:a.Length]
+	a.Userdata = make([]byte, int(a.Length)-n)
+	copy(a.Userdata, data[n:a.Length])
 	return nil
 }
 
