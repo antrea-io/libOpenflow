@@ -80,12 +80,16 @@ func (a *ARP) UnmarshalBinary(data []byte) error {
 	if len(data[n:]) < (int(a.HWLength)*2 + int(a.ProtoLength)*2) {
 		return errors.New("The []byte is too short to unmarshal a full ARP message.")
 	}
-	a.HWSrc = data[n : n+int(a.HWLength)]
+	a.HWSrc = make([]byte, a.HWLength)
+	copy(a.HWSrc, data[n:n+int(a.HWLength)])
 	n += int(a.HWLength)
-	a.IPSrc = data[n : n+int(a.ProtoLength)]
+	a.IPSrc = make([]byte, a.ProtoLength)
+	copy(a.IPSrc, data[n:n+int(a.ProtoLength)])
 	n += int(a.ProtoLength)
-	a.HWDst = data[n : n+int(a.HWLength)]
+	a.HWDst = make([]byte, a.HWLength)
+	copy(a.HWDst, data[n:n+int(a.HWLength)])
 	n += int(a.HWLength)
-	a.IPDst = data[n : n+int(a.ProtoLength)]
+	a.IPDst = make([]byte, a.ProtoLength)
+	copy(a.IPDst, data[n:n+int(a.ProtoLength)])
 	return nil
 }
