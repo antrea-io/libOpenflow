@@ -433,3 +433,110 @@ func (prop *GroupBucketPropWatch) UnmarshalBinary(data []byte) (err error) {
 
 	return
 }
+
+type NTRSelectionMethodType string
+
+const (
+	OFPGPT_EXPERIMENTER   = 0xFFFF
+	NTR_VENDOR_ID         = 0x0000154d
+	NTRT_SELECTION_METHOD = 1
+
+	NTR_HASH    NTRSelectionMethodType = "hash"
+	NTR_DP_HASH NTRSelectionMethodType = "dp_hash"
+)
+
+type NTRSelectionMethod struct {
+	Type             uint16
+	Length           uint16
+	ExperimenterID   uint32
+	ExperimenterType uint32
+	// padding with 4 bytes.
+	SelectionMethod [16]byte
+	SelectionParam  uint64
+	// Note, a valid field is supposed to configure with "MatchField.HasMask=false", and OVS will apply its
+	// "Value" to the packet field as a mask.
+	Fields []MatchField
+}
+
+func NewNTRSelectionMethod(method NTRSelectionMethodType, param uint64, fields ...MatchField) *NTRSelectionMethod {
+	methodBytes := [16]byte{}
+	copy(methodBytes[:], method)
+	return &NTRSelectionMethod{
+		Type:             OFPGPT_EXPERIMENTER,
+		ExperimenterID:   NTR_VENDOR_ID,
+		ExperimenterType: NTRT_SELECTION_METHOD,
+		SelectionMethod:  methodBytes,
+		SelectionParam:   param,
+		Fields:           fields,
+	}
+}
+
+func (m *NTRSelectionMethod) Len() uint16 {
+	length := m.calculateLength()
+	return (length + 7) / 8 * 8
+}
+
+func (m *NTRSelectionMethod) MarshalBinary() (data []byte, err error) {
+	data = make([]byte, int(m.Len()))
+	n := 0
+	binary.BigEndian.PutUint16(data[0:], m.Type)
+	n += 2
+	m.Length = m.calculateLength()
+	binary.BigEndian.PutUint16(data[n:], m.Length)
+	n += 2
+	binary.BigEndian.PutUint32(data[n:], m.ExperimenterID)
+	n += 4
+	binary.BigEndian.PutUint32(data[n:], m.ExperimenterType)
+	n += 8 // 4 byte for ExperimenterType, and 4 byte is for pad1
+	copy(data[n:n+16], m.SelectionMethod[:])
+	n += 16
+	binary.BigEndian.PutUint64(data[n:], m.SelectionParam)
+	n += 8
+	for _, f := range m.Fields {
+		b, err := f.MarshalBinary()
+		if err != nil {
+			return data, err
+		}
+		copy(data[n:], b)
+		n += int(f.Len())
+	}
+	return
+}
+
+func (m *NTRSelectionMethod) UnmarshalBinary(data []byte) (err error) {
+	if len(data) < 40 {
+		return errors.New("the []byte the wrong size to unmarshal a NTRSelectionMethod message")
+	}
+	n := 0
+	m.Type = binary.BigEndian.Uint16(data[n:])
+	n += 2
+	m.Length = binary.BigEndian.Uint16(data[n:])
+	n += 2
+	m.ExperimenterID = binary.BigEndian.Uint32(data[n:])
+	n += 4
+	m.ExperimenterType = binary.BigEndian.Uint32(data[n:])
+	n += 8
+	m.SelectionMethod = [16]byte{}
+	copy(m.SelectionMethod[:], data[n:n+16])
+	n += 16
+	m.SelectionParam = binary.BigEndian.Uint64(data[n:])
+	n += 8
+	for n < int(m.Length) {
+		field := new(MatchField)
+		err = field.UnmarshalBinary(data[n:])
+		if err != nil {
+			return err
+		}
+		m.Fields = append(m.Fields, *field)
+		n += int(field.Len())
+	}
+	return nil
+}
+
+func (m *NTRSelectionMethod) calculateLength() uint16 {
+	length := uint16(40)
+	for _, f := range m.Fields {
+		length += f.Len()
+	}
+	return length
+}
