@@ -18,7 +18,7 @@ type TCP struct {
 	Checksum uint16
 	UrgFlag  uint16
 
-	Data []byte
+	Data []byte // This field contains both TCP options and application layer message.
 }
 
 func NewTCP() *TCP {
@@ -76,4 +76,50 @@ func (t *TCP) UnmarshalBinary(data []byte) error {
 
 	return nil
 
+}
+
+// GetOptions returns the TCP options in the header.
+// It returns an error if HdrLen is invalid.
+func (t *TCP) GetOptions() ([]byte, error) {
+	err := t.validateHdrLen()
+	if err != nil {
+		return nil, err
+	}
+	optionsSize := t.getOptionsSize()
+	opt := make([]byte, optionsSize)
+	copy(opt, t.Data[:optionsSize])
+	return opt, nil
+}
+
+// GetPayload returns the packet payload (application layer message).
+// It returns an error if HdrLen is invalid.
+func (t *TCP) GetPayload() ([]byte, error) {
+	err := t.validateHdrLen()
+	if err != nil {
+		return nil, err
+	}
+	optionsSize := t.getOptionsSize()
+	msg := make([]byte, len(t.Data)-optionsSize)
+	copy(msg, t.Data[optionsSize:])
+	return msg, nil
+}
+
+var (
+	errHdrLenTooSmall = errors.New("a TCP header must be at least 20 bytes (5 32-bit words)")
+	errHdrLenTooLarge = errors.New("the TCP header size is larger than the packet size")
+)
+
+func (t *TCP) validateHdrLen() error {
+	if t.HdrLen < 5 {
+		return errHdrLenTooSmall
+	}
+	optionsSize := t.getOptionsSize()
+	if len(t.Data) < optionsSize {
+		return errHdrLenTooLarge
+	}
+	return nil
+}
+
+func (t *TCP) getOptionsSize() int {
+	return (int(t.HdrLen) - 5) * 4
 }
