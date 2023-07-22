@@ -25,6 +25,6 @@ golangci-fix: $(GOLANGCI_LINT_BIN)
 	@echo "===> Running golangci-fix <==="
 	@GOOS=linux $(GOLANGCI_LINT_BIN) run -c .golangci.yml --fix
 
-.PHONY: cleam
+.PHONY: clean
 clean:
 	rm -rf $(GOLANGCI_LINT_BINDIR)
