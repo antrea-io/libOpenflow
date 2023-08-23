@@ -1,5 +1,5 @@
 GO                    ?= go
-GOLANGCI_LINT_VERSION := v1.52.2
+GOLANGCI_LINT_VERSION := v1.54.2
 GOLANGCI_LINT_BINDIR  := .golangci-bin
 GOLANGCI_LINT_BIN     := $(GOLANGCI_LINT_BINDIR)/$(GOLANGCI_LINT_VERSION)/golangci-lint
 

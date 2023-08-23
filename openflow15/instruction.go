@@ -41,7 +41,7 @@ func (a *InstrHeader) Len() (n uint16) {
 }
 
 func (a *InstrHeader) MarshalBinary() (data []byte, err error) {
-	data = make([]byte, a.Len())
+	data = make([]byte, 4)
 	binary.BigEndian.PutUint16(data[:2], a.Type)
 	binary.BigEndian.PutUint16(data[2:4], a.Length)
 	return
