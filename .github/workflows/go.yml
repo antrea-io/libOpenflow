@@ -14,7 +14,7 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
     - name: Check-out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up Go using version from go.mod
       uses: actions/setup-go@v4
       with:
@@ -27,7 +27,7 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
     - name: Check-out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up Go using version from go.mod
       uses: actions/setup-go@v4
       with:
@@ -40,7 +40,7 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
     - name: Check-out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Run code linters
       run: |
         make golangci
