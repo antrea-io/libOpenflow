@@ -23,6 +23,12 @@ const (
 	VERSION = 6
 )
 
+const (
+	// Referring to page 43 in https://opennetworking.org/wp-content/uploads/2014/10/openflow-switch-v1.5.1.pdf,
+	// an OpenFlow message size can reach up to 64KB.
+	MSG_MAX_LEN = 0xffff
+)
+
 // Returns a new OpenFlow header with version field set to v1.5.
 var NewOfp15Header func() common.Header = common.NewHeaderGenerator(VERSION)
 
