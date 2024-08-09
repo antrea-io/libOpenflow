@@ -126,7 +126,6 @@ func (g *GroupMod) MarshalBinary() (data []byte, err error) {
 			return
 		}
 		data = append(data, bytes...)
-		g.BucketArrayLen += bkt.Len()
 	}
 
 	for _, p := range g.Properties {

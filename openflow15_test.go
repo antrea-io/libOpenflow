@@ -87,6 +87,13 @@ func validateOpenflowMessage(m util.Message, n util.Message) error {
 		return err
 	}
 
+	// check that marshalling doesn't change internal state
+	x2, err := n.MarshalBinary()
+	if err != nil {
+		fmt.Printf("Second MarshalBinary failed with error code: %v", err)
+		return err
+	}
+
 	// Debug block
 	if false { // set to true if you want to write second pass message to be
 		// written to the pcap file as well.
@@ -110,6 +117,12 @@ func validateOpenflowMessage(m util.Message, n util.Message) error {
 	if bytes.Equal(b, x) == false {
 		var myErr MyError
 		myErr.s = "MarshalBinary bytes don't match with original"
+		return myErr
+	}
+
+	if bytes.Equal(x, x2) == false {
+		var myErr MyError
+		myErr.s = "Results of first and second run of MarshalBinary are different"
 		return myErr
 	}
 	return nil
