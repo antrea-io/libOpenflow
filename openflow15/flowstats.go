@@ -185,7 +185,7 @@ func (f *TimeStatField) UnmarshalBinary(data []byte) (err error) {
 		return
 	}
 	n := f.Header.Len()
-	klog.V(7).Info("Header Len: %d", n)
+	klog.V(7).Infof("Header Len: %d", n)
 	f.Sec = binary.BigEndian.Uint32(data[n:])
 	n += 4
 	f.NSec = binary.BigEndian.Uint32(data[n:])

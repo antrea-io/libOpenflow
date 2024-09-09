@@ -7,23 +7,20 @@ import (
 	"net"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"antrea.io/libOpenflow/util"
 )
 
 func TestIPv6Option(t *testing.T) {
 	testFunc := func(oriMessage *Option) {
 		data, err := oriMessage.MarshalBinary()
-		if err != nil {
-			t.Fatalf("Failed to Marshal message: %v", err)
-		}
+		require.NoError(t, err, "Failed to Marshal message")
 		newMessage := new(Option)
 		err = newMessage.UnmarshalBinary(data)
-		if err != nil {
-			t.Fatalf("Failed to UnMarshal message: %v", err)
-		}
-		if err := testOptionEqual(oriMessage, newMessage); err != nil {
-			t.Error(err.Error())
-		}
+		require.NoError(t, err, "Failed to Unmarshal message")
+		assert.NoError(t, testOptionEqual(oriMessage, newMessage))
 	}
 	option := &Option{
 		Type:   1,
@@ -49,17 +46,11 @@ func testOptionEqual(oriMessage, newMessage *Option) error {
 func TestHopByHopHeader(t *testing.T) {
 	testFunc := func(oriMessage *HopByHopHeader) {
 		data, err := oriMessage.MarshalBinary()
-		if err != nil {
-			t.Fatalf("Failed to Marshal message: %v", err)
-		}
+		require.NoError(t, err, "Failed to Marshal message")
 		newMessage := new(HopByHopHeader)
 		err = newMessage.UnmarshalBinary(data)
-		if err != nil {
-			t.Fatalf("Failed to UnMarshal message: %v", err)
-		}
-		if err := testHopByHopHeaderEqual(oriMessage, newMessage); err != nil {
-			t.Errorf(err.Error())
-		}
+		require.NoError(t, err, "Failed to Unmarshal message")
+		assert.NoError(t, err, testHopByHopHeaderEqual(oriMessage, newMessage))
 	}
 	msg := &HopByHopHeader{
 		NextHeader: 59,
@@ -97,17 +88,11 @@ func testHopByHopHeaderEqual(oriMessage, newMessage *HopByHopHeader) error {
 func TestRoutingHeader(t *testing.T) {
 	testFunc := func(oriMessage *RoutingHeader) {
 		data, err := oriMessage.MarshalBinary()
-		if err != nil {
-			t.Fatalf("Failed to Marshal message: %v", err)
-		}
+		require.NoError(t, err, "Failed to Marshal message")
 		newMessage := new(RoutingHeader)
 		err = newMessage.UnmarshalBinary(data)
-		if err != nil {
-			t.Fatalf("Failed to UnMarshal message: %v", err)
-		}
-		if err := testRoutingHeaderEqual(oriMessage, newMessage); err != nil {
-			t.Errorf(err.Error())
-		}
+		require.NoError(t, err, "Failed to Unmarshal message")
+		assert.NoError(t, testRoutingHeaderEqual(oriMessage, newMessage))
 	}
 	data := make([]byte, 20)
 	binary.BigEndian.PutUint32(data, uint32(0))
@@ -148,17 +133,11 @@ func testRoutingHeaderEqual(oriMessage *RoutingHeader, newMessage *RoutingHeader
 func TestFragmentHeader(t *testing.T) {
 	testFunc := func(oriMessage *FragmentHeader) {
 		data, err := oriMessage.MarshalBinary()
-		if err != nil {
-			t.Fatalf("Failed to Marshal message: %v", err)
-		}
+		require.NoError(t, err, "Failed to Marshal message")
 		newMessage := new(FragmentHeader)
 		err = newMessage.UnmarshalBinary(data)
-		if err != nil {
-			t.Fatalf("Failed to UnMarshal message: %v", err)
-		}
-		if err := testFragmentHeaderEqual(oriMessage, newMessage); err != nil {
-			t.Errorf(err.Error())
-		}
+		require.NoError(t, err, "Failed to Unmarshal message")
+		assert.NoError(t, testFragmentHeaderEqual(oriMessage, newMessage))
 	}
 
 	msg := &FragmentHeader{
@@ -193,18 +172,11 @@ func testFragmentHeaderEqual(oriMessage *FragmentHeader, newMessage *FragmentHea
 func TestIPv6(t *testing.T) {
 	testFunc := func(oriMessage *IPv6) {
 		data, err := oriMessage.MarshalBinary()
-		if err != nil {
-			t.Fatalf("Failed to Marshal message: %v", err)
-		}
+		require.NoError(t, err, "Failed to Marshal message")
 		newMessage := new(IPv6)
 		err = newMessage.UnmarshalBinary(data)
-		if err != nil {
-			t.Fatalf("Failed to UnMarshal message: %v", err)
-		}
-		err = testIPv6Equals(oriMessage, newMessage)
-		if err != nil {
-			t.Error(err.Error())
-		}
+		require.NoError(t, err, "Failed to Unmarshal message")
+		assert.NoError(t, testIPv6Equals(oriMessage, newMessage))
 	}
 	srcIP := net.ParseIP("2001:db8::1")
 	dstIP := net.ParseIP("2001:db8::2")

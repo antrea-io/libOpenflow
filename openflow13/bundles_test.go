@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBundleControl(t *testing.T) {
@@ -15,17 +16,11 @@ func TestBundleControl(t *testing.T) {
 		Flags:    OFPBCT_ATOMIC,
 	}
 	data, err := bundleCtrl.MarshalBinary()
-	if err != nil {
-		t.Fatalf("Failed to Marshal BundleControl message: %v", err)
-	}
+	require.NoError(t, err, "Failed to Marshal BundleControl message")
 	bundleCtrl2 := new(BundleControl)
 	err = bundleCtrl2.UnmarshalBinary(data)
-	if err != nil {
-		t.Fatalf("Failed to Unmarshal BundleControl message: %v", err)
-	}
-	if err := bundleCtrlEqual(bundleCtrl, bundleCtrl2); err != nil {
-		t.Errorf(err.Error())
-	}
+	require.NoError(t, err, "Failed to Unmarshal BundleControl message")
+	assert.NoError(t, bundleCtrlEqual(bundleCtrl, bundleCtrl2))
 }
 
 func TestBundleAdd(t *testing.T) {
@@ -36,31 +31,21 @@ func TestBundleAdd(t *testing.T) {
 	}
 
 	data, err := bundleAdd.MarshalBinary()
-	if err != nil {
-		t.Fatalf("Failed to Marshal BundleAdd message: %v", err)
-	}
+	require.NoError(t, err, "Failed to Marshal BundleAdd message")
 	bundleAdd2 := new(BundleAdd)
 	err = bundleAdd2.UnmarshalBinary(data)
-	if err != nil {
-		t.Fatalf("Failed to Unmarshal BundleAdd message: %v", err)
-	}
-	if err := bundleAddEqual(bundleAdd, bundleAdd2); err != nil {
-		t.Error(err.Error())
-	}
+	require.NoError(t, err, "Failed to Unmarshal BundleAdd message")
+	assert.NoError(t, bundleAddEqual(bundleAdd, bundleAdd2))
 }
 
 func TestBundleError(t *testing.T) {
 	bundleError := NewBundleError()
 	bundleError.Code = BEC_TIMEOUT
 	data, err := bundleError.MarshalBinary()
-	if err != nil {
-		t.Fatalf("Failed to Marshal VendorError message: %v", err)
-	}
+	require.NoError(t, err, "Failed to Marshal VendorError message")
 	var bundleErr2 VendorError
 	err = bundleErr2.UnmarshalBinary(data)
-	if err != nil {
-		t.Fatalf("Failed to Unmarshal VendorError message: %v", err)
-	}
+	require.NoError(t, err, "Failed to Unmarshal VendorError message")
 	assert.Equal(t, bundleError.Type, bundleErr2.Type)
 	assert.Equal(t, bundleError.Code, bundleErr2.Code)
 	assert.Equal(t, bundleError.ExperimenterID, bundleErr2.ExperimenterID)
@@ -74,14 +59,10 @@ func TestVendorHeader(t *testing.T) {
 	vh1.Vendor = uint32(1000)
 	vh1.ExperimenterType = uint32(2000)
 	data, err := vh1.MarshalBinary()
-	if err != nil {
-		t.Fatalf("Failed to Marshal VendorHeader message: %v", err)
-	}
+	require.NoError(t, err, "Failed to Marshal VendorHeader message")
 	var vh2 VendorHeader
 	err = vh2.UnmarshalBinary(data)
-	if err != nil {
-		t.Fatalf("Failed to Unmarshal VendorHeader message: %v", err)
-	}
+	require.NoError(t, err, "Failed to Unmarshal VendorHeader message")
 	assert.Equal(t, vh1.Header.Type, vh2.Header.Type)
 	assert.Equal(t, vh1.Vendor, vh2.Vendor)
 	assert.Equal(t, vh1.ExperimenterType, vh2.ExperimenterType)
@@ -90,22 +71,14 @@ func TestVendorHeader(t *testing.T) {
 func TestBundleControlMessage(t *testing.T) {
 	testFunc := func(oriMessage *VendorHeader) {
 		data, err := oriMessage.MarshalBinary()
-		if err != nil {
-			t.Fatalf("Failed to Marshal message: %v", err)
-		}
+		require.NoError(t, err, "Failed to Marshal message")
 		newMessage := new(VendorHeader)
 		err = newMessage.UnmarshalBinary(data)
-		if err != nil {
-			t.Fatalf("Failed to UnMarshal message: %v", err)
-		}
+		require.NoError(t, err, "Failed to Unmarshal message")
 		bundleCtrl := oriMessage.VendorData.(*BundleControl)
 		bundleCtrl2, ok := newMessage.VendorData.(*BundleControl)
-		if !ok {
-			t.Fatalf("Failed to cast BundleControl from result")
-		}
-		if err = bundleCtrlEqual(bundleCtrl, bundleCtrl2); err != nil {
-			t.Error(err.Error())
-		}
+		require.True(t, ok, "Failed to cast BundleControl from result")
+		assert.NoError(t, bundleCtrlEqual(bundleCtrl, bundleCtrl2))
 	}
 
 	bundleCtrl := &BundleControl{
@@ -120,22 +93,14 @@ func TestBundleControlMessage(t *testing.T) {
 func TestBundleAddMessage(t *testing.T) {
 	testFunc := func(oriMessage *VendorHeader) {
 		data, err := oriMessage.MarshalBinary()
-		if err != nil {
-			t.Fatalf("Failed to Marshal message: %v", err)
-		}
+		require.NoError(t, err, "Failed to Marshal message")
 		newMessage := new(VendorHeader)
 		err = newMessage.UnmarshalBinary(data)
-		if err != nil {
-			t.Fatalf("Failed to UnMarshal message: %v", err)
-		}
+		require.NoError(t, err, "Failed to Unmarshal message")
 		bundleAdd := oriMessage.VendorData.(*BundleAdd)
 		bundleAdd2, ok := newMessage.VendorData.(*BundleAdd)
-		if !ok {
-			t.Fatalf("Failed to cast BundleControl from result")
-		}
-		if err = bundleAddEqual(bundleAdd, bundleAdd2); err != nil {
-			t.Error(err.Error())
-		}
+		require.True(t, ok, "Failed to cast BundleAdd from result")
+		assert.NoError(t, bundleAddEqual(bundleAdd, bundleAdd2))
 	}
 
 	bundleAdd := &BundleAdd{
