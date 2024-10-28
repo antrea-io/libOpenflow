@@ -856,6 +856,7 @@ func (m *EthDstField) MarshalBinary() (data []byte, err error) {
 }
 
 func (m *EthDstField) UnmarshalBinary(data []byte) error {
+	m.EthDst = make([]byte, 6)
 	copy(m.EthDst, data)
 	return nil
 }
@@ -899,6 +900,7 @@ func (m *EthSrcField) MarshalBinary() (data []byte, err error) {
 }
 
 func (m *EthSrcField) UnmarshalBinary(data []byte) error {
+	m.EthSrc = make([]byte, 6)
 	copy(m.EthSrc, data)
 	return nil
 }
