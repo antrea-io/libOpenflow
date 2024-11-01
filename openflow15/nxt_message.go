@@ -380,10 +380,8 @@ func (p *ContinuationPropStack) UnmarshalBinary(data []byte) error {
 		return errors.New("the []byte is too short to unmarshal a full ContinuationPropStack message")
 	}
 	n += int(p.PropHeader.Len())
-	for _, eachStack := range p.Stack {
-		data[n] = eachStack
-		n++
-	}
+	p.Stack = make([]byte, int(p.Length) - n)
+	copy(p.Stack, data[n:])
 	return nil
 }
 
