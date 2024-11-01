@@ -1,24 +1,22 @@
-package openflow15_test
+package openflow15
 
 import (
 	"bytes"
 	"fmt"
 	"net"
 	"testing"
-
-	"antrea.io/libOpenflow/openflow15"
 )
 
 func TestMatchEthAddresses(t *testing.T) {
 	ethSrcAddress, _ := net.ParseMAC("aa:aa:aa:aa:aa:aa")
 	ethDstAddress, _ := net.ParseMAC("ff:ff:ff:ff:ff:ff")
 
-	ofMatch := openflow15.NewMatch()
+	ofMatch := NewMatch()
 	{
-		macSrcField := openflow15.NewEthSrcField(ethSrcAddress, nil)
+		macSrcField := NewEthSrcField(ethSrcAddress, nil)
 		ofMatch.AddField(*macSrcField)
 
-		macDstField := openflow15.NewEthDstField(ethDstAddress, nil)
+		macDstField := NewEthDstField(ethDstAddress, nil)
 		ofMatch.AddField(*macDstField)
 	}
 
@@ -27,7 +25,7 @@ func TestMatchEthAddresses(t *testing.T) {
 	}
 }
 
-func checkMatchSerializationConsistency(ofMatch *openflow15.Match) error {
+func checkMatchSerializationConsistency(ofMatch *Match) error {
 	// Serialize the original match
 	ofMatchRaw, err := ofMatch.MarshalBinary()
 	if err != nil {
@@ -35,7 +33,7 @@ func checkMatchSerializationConsistency(ofMatch *openflow15.Match) error {
 	}
 
 	// Deserialize into a new match object
-	ofMatchRecovered := openflow15.NewMatch()
+	ofMatchRecovered := NewMatch()
 	if err := ofMatchRecovered.UnmarshalBinary(ofMatchRaw); err != nil {
 		return fmt.Errorf("failed to unmarshal match: %w", err)
 	}
