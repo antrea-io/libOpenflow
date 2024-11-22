@@ -1516,7 +1516,7 @@ func (p *PropExperimenter) Len() uint16 {
 
 func (p *PropExperimenter) MarshalBinary() (data []byte, err error) {
 	data = make([]byte, int(p.Len()))
-	p.Header.Length = 8 + uint16(len(p.Data)*4)
+	p.Header.Length = p.Header.Len() + 8 + uint16(len(p.Data)*4)
 	b, err := p.Header.MarshalBinary()
 	if err != nil {
 		return
@@ -1547,7 +1547,7 @@ func (p *PropExperimenter) UnmarshalBinary(data []byte) (err error) {
 	p.ExpType = binary.BigEndian.Uint32(data[n:])
 	n += 4
 
-	for n < p.Header.Length+p.Header.Len() {
+	for n < p.Header.Length {
 		d := binary.BigEndian.Uint32(data[n:])
 		p.Data = append(p.Data, d)
 		n += 4
