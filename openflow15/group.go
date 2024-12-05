@@ -162,7 +162,7 @@ func (g *GroupMod) UnmarshalBinary(data []byte) (err error) {
 	g.CommandBucketId = binary.BigEndian.Uint32(data[n:])
 	n += 4
 
-	for len(g.Buckets) < int(g.BucketArrayLen) && n < g.Header.Length {
+	for len(g.Buckets) < int(g.BucketArrayLen) {
 		bkt := new(Bucket)
 		err = bkt.UnmarshalBinary(data[n:])
 		if err != nil {
