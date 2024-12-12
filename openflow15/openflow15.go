@@ -1509,8 +1509,6 @@ func (p *PropExperimenter) Len() uint16 {
 	n += 8
 	l := uint16(len(p.Data) * 4)
 	n += l
-	//n += uint16((8 - (l % 8)) % 8)  // pad to make multiple of 8
-	n += uint16(8 - (l % 8)) // pad to make multiple of 8
 	return n
 }
 
