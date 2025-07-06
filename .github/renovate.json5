@@ -1,0 +1,43 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:base",
+    ":gitSignOff", // Add commit Sign-Off for renovate commits
+  ],
+
+  // Allow only certain package managers and implicitly disable all others
+  enabledManagers: ["gomod", "github-actions"],
+
+  // Active release branches
+  baseBranches: ["main"],
+  prConcurrentLimit: 5,
+  prHourlyLimit: 0,
+
+  postUpdateOptions: ["gomodTidy"],
+
+  // Don't separate major, minor and patch in different PRs
+  separateMajorMinor: false,
+  separateMinorPatch: false,
+
+  // Labels to include in the PR
+  labels: ["dependencies"],
+
+  // Enabling security updates based on GitHub's Dependabot-style security alerts
+  vulnerabilityAlerts: {
+    enabled: true,
+  },
+
+  packageRules: [
+    {
+      matchManagers: ["gomod"],
+      addLabels: ["go"],
+      enabled: true,
+    },
+
+    {
+      matchManagers: ["github-actions"],
+      addLabels: ["github_actions"],
+      enabled: true,
+    },
+  ],
+}
