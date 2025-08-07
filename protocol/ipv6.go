@@ -87,7 +87,6 @@ func (i *IPv6) MarshalBinary() (data []byte, err error) {
 			hBytes, err = i.FragmentHeader.MarshalBinary()
 		default:
 			checkExtHeader = false
-			break
 		}
 		if err != nil {
 			return nil, err
@@ -112,8 +111,7 @@ func (i *IPv6) UnmarshalBinary(data []byte) error {
 	}
 	n := 0
 
-	var ihl uint8
-	ihl = data[n]
+	ihl := data[n]
 	i.Version = ihl >> 4
 	tcLeft := (ihl & 0x0f) << 4
 	n += 1

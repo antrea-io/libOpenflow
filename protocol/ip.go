@@ -58,17 +58,17 @@ func (i *IPv4) MarshalBinary() (data []byte, err error) {
 	var b []byte
 	n := 0
 
-	var ihl uint8 = (i.Version << 4) + i.IHL
+	ihl := (i.Version << 4) + i.IHL
 	data[n] = ihl
 	n += 1
-	var ecn uint8 = (i.DSCP << 2) + i.ECN
+	ecn := (i.DSCP << 2) + i.ECN
 	data[n] = ecn
 	n += 1
 	binary.BigEndian.PutUint16(data[n:], i.Length)
 	n += 2
 	binary.BigEndian.PutUint16(data[n:], i.Id)
 	n += 2
-	var flg uint16 = (i.Flags << 13) + i.FragmentOffset
+	flg := (i.Flags << 13) + i.FragmentOffset
 	binary.BigEndian.PutUint16(data[n:], flg)
 	n += 2
 	data[n] = i.TTL
@@ -106,14 +106,12 @@ func (i *IPv4) UnmarshalBinary(data []byte) error {
 	}
 	n := 0
 
-	var ihl uint8
-	ihl = data[n]
+	ihl := data[n]
 	i.Version = ihl >> 4
 	i.IHL = ihl & 0x0f
 	n += 1
 
-	var ecn uint8
-	ecn = data[n]
+	ecn := data[n]
 	i.DSCP = ecn >> 2
 	i.ECN = ecn & 0x03
 	n += 1
@@ -123,8 +121,7 @@ func (i *IPv4) UnmarshalBinary(data []byte) error {
 	i.Id = binary.BigEndian.Uint16(data[n:])
 	n += 2
 
-	var flg uint16
-	flg = binary.BigEndian.Uint16(data[n:])
+	flg := binary.BigEndian.Uint16(data[n:])
 	i.Flags = flg >> 13
 	i.FragmentOffset = flg & 0x1fff
 	n += 2

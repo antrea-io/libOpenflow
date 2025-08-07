@@ -1856,7 +1856,7 @@ func NewTableMod() *TableMod {
 }
 
 func (t *TableMod) Len() uint16 {
-	var n uint16 = t.Header.Len()
+	n := t.Header.Len()
 	n += 8
 	for _, prop := range t.Properties {
 		n += prop.Len()

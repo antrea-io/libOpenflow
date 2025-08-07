@@ -104,7 +104,7 @@ func TestMessageStream(t *testing.T) {
 	logrus.SetLevel(logrus.PanicLevel)
 	stream := util.NewMessageStream(c, p)
 	go func() {
-		_ = <-stream.Error
+		<-stream.Error
 	}()
 	for i := 0; i < 5000000; i++ {
 		<-stream.Inbound
@@ -140,7 +140,7 @@ func TestStreamInbound(t *testing.T) {
 	})
 	stream := util.NewMessageStream(c, parserIntf{})
 	go func() {
-		_ = <-stream.Error
+		<-stream.Error
 	}()
 
 	msgs := make([]util.Message, msgCount)

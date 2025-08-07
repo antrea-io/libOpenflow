@@ -205,8 +205,7 @@ func newNXRegHeader(idx int, hasMask bool) *MatchField {
 // to dataRng. We may need to use NewRegMatchFieldWithMask if we want a discontinuous
 // reg mask, such as, 0x5.
 func NewRegMatchField(idx int, data uint32, dataRng *NXRange) *MatchField {
-	var field *MatchField
-	field = newNXRegHeader(idx, dataRng != nil)
+	field := newNXRegHeader(idx, dataRng != nil)
 
 	field.Value = newUint32Message(data)
 	if dataRng != nil {
@@ -219,8 +218,7 @@ func NewRegMatchField(idx int, data uint32, dataRng *NXRange) *MatchField {
 // be arbitrary bitwise, including continuous mask, such as, 0x7 and discontinous
 // mask, such as, 0x5.
 func NewRegMatchFieldWithMask(idx int, data uint32, mask uint32) *MatchField {
-	var field *MatchField
-	field = newNXRegHeader(idx, mask != 0)
+	field := newNXRegHeader(idx, mask != 0)
 
 	field.Value = newUint32Message(data)
 	if mask != 0 {
@@ -236,8 +234,7 @@ func newNXTunMetadataHeader(idx int, hasMask bool) *MatchField {
 }
 
 func NewTunMetadataField(idx int, data []byte, mask []byte) *MatchField {
-	var field *MatchField
-	field = newNXTunMetadataHeader(idx, len(mask) > 0)
+	field := newNXTunMetadataHeader(idx, len(mask) > 0)
 
 	field.Value = &ByteArrayField{
 		Data:   data,

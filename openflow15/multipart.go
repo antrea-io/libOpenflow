@@ -1470,7 +1470,6 @@ type InstructionProperty struct {
 
 func (p *InstructionProperty) AddInstructionId(i InstructionId) {
 	p.Instructions = append(p.Instructions, i)
-	return
 }
 
 func (p *InstructionProperty) Len() uint16 {
@@ -1631,7 +1630,6 @@ type ActionProperty struct {
 
 func (p *ActionProperty) AddActionId(a ActionId) {
 	p.Actions = append(p.Actions, a)
-	return
 }
 
 func (p *ActionProperty) Len() uint16 {
@@ -2604,7 +2602,6 @@ func NewMeterStats(id uint32) *MeterStats {
 
 func (m *MeterStats) AddBandStats(s MeterBandStats) {
 	m.BandStats = append(m.BandStats, s)
-	return
 }
 
 func (m *MeterStats) Len() uint16 {
@@ -2725,7 +2722,6 @@ type MeterDesc struct {
 
 func (m *MeterDesc) AddBand(b util.Message) {
 	m.Bands = append(m.Bands, b)
-	return
 }
 
 func NewMeterDesc(id uint32) *MeterDesc {
@@ -3213,7 +3209,6 @@ func NewFlowUpdateFull(event uint16) *FlowUpdateFull {
 
 func (full *FlowUpdateFull) AddInstruction(i Instruction) {
 	full.Instructions = append(full.Instructions, i)
-	return
 }
 
 func (full *FlowUpdateFull) Len() uint16 {

@@ -162,8 +162,7 @@ func (v *VLAN) UnmarshalBinary(data []byte) error {
 		return errors.New("The []byte is too short to unmarshal a full VLAN header.")
 	}
 	v.TPID = binary.BigEndian.Uint16(data[:2])
-	var tci uint16
-	tci = binary.BigEndian.Uint16(data[2:])
+	tci := binary.BigEndian.Uint16(data[2:])
 	v.PCP = uint8(PCP_MASK & tci >> 13)
 	v.DEI = uint8(DEI_MASK & tci >> 12)
 	v.VID = VID_MASK & tci

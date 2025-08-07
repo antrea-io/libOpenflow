@@ -448,9 +448,9 @@ func DHCPMarshalOption(o DHCPOption) (out []byte, err error) {
 	return
 }
 
-func (self dhcpoption) Len() uint16      { return uint16(len(self.data) + 2) }
-func (self dhcpoption) Bytes() []byte    { return self.data }
-func (self dhcpoption) OptionType() byte { return self.tag }
+func (o dhcpoption) Len() uint16      { return uint16(len(o.data) + 2) }
+func (o dhcpoption) Bytes() []byte    { return o.data }
+func (o dhcpoption) OptionType() byte { return o.tag }
 
 func DHCPNewOption(tag byte, data []byte) DHCPOption {
 	return &dhcpoption{tag: tag, data: data}
@@ -460,7 +460,7 @@ func DHCPNewOption(tag byte, data []byte) DHCPOption {
 // simply that if you do that they're valid. Most DHCP options are only
 // valid with 1(+|) values
 func DHCPIP4sOption(tag byte, ips []net.IP) (opt DHCPOption, err error) {
-	var out []byte = make([]byte, 4*len(ips))
+	out := make([]byte, 4*len(ips))
 	for i := range ips {
 		ip := ips[i].To4()
 		if ip == nil {
