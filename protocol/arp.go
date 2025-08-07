@@ -21,6 +21,9 @@ type ARP struct {
 	IPSrc       net.IP
 	HWDst       net.HardwareAddr
 	IPDst       net.IP
+	// The actual test shows that ARP reply packets sent by the H3C switch include an additional 14 bytes.
+	// This is done by the switch to meet the minimum frame length requirement of 64 bytes.
+	Padding []byte
 }
 
 func NewARP(opt int) (*ARP, error) {
@@ -43,6 +46,8 @@ func NewARP(opt int) (*ARP, error) {
 func (a *ARP) Len() (n uint16) {
 	n = 8
 	n += uint16(a.HWLength*2 + a.ProtoLength*2)
+	// Including the padding bytes, an inaccurate length can cause a panic in PacketIn2PropPacket.UnmarshalBinary.
+	n += uint16(len(a.Padding))
 	return
 }
 
@@ -91,5 +96,10 @@ func (a *ARP) UnmarshalBinary(data []byte) error {
 	n += int(a.HWLength)
 	a.IPDst = make([]byte, a.ProtoLength)
 	copy(a.IPDst, data[n:n+int(a.ProtoLength)])
+	n += int(a.ProtoLength)
+	if len(data[n:]) > 0 {
+		a.Padding = make([]byte, len(data[n:]))
+		copy(a.Padding, data[n:])
+	}
 	return nil
 }
