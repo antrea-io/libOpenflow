@@ -139,20 +139,21 @@ func (p *BundlePropertyExperimenter) MarshalBinary() (data []byte, err error) {
 }
 
 func (p *BundlePropertyExperimenter) UnmarshalBinary(data []byte) error {
-	if len(data) < int(p.Len()) {
-		return errors.New("the []byte is too short to unmarshal a full BundlePropertyExperimenter message")
-	}
 	n := 0
 	p.Type = binary.BigEndian.Uint16(data[n:])
 	n += 2
 	p.Length = binary.BigEndian.Uint16(data[n:])
+	if len(data) < int(p.Length) {
+		return errors.New("the []byte is too short to unmarshal a full BundlePropertyExperimenter message")
+	}
 	n += 2
 	p.ExperimenterID = binary.BigEndian.Uint32(data[n:])
 	n += 4
 	p.ExperimenterType = binary.BigEndian.Uint32(data[n:])
 	n += 4
-	if len(data) < int(p.Length) {
-		p.data = data[n:]
+	if n < int(p.Length) {
+		p.data = make([]byte, int(p.Length)-n)
+		copy(p.data, data[n:])
 	}
 	return nil
 }

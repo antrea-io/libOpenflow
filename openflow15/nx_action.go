@@ -1370,7 +1370,8 @@ func (a *NXActionNote) UnmarshalBinary(data []byte) error {
 		return errors.New("the []byte is too short to unmarshal a full NXActionNote message")
 	}
 	n := a.NXActionHeader.Len()
-	a.Note = data[n:a.Length]
+	a.Note = make([]byte, a.Length-n)
+	copy(a.Note, data[n:a.Length])
 	return nil
 }
 
@@ -1699,7 +1700,8 @@ func (a *NXActionController2PropUserdata) UnmarshalBinary(data []byte) error {
 	}
 	n += int(a.PropHeader.Len())
 
-	a.Userdata = data[n:a.Length]
+	a.Userdata = make([]byte, int(a.Length)-n)
+	copy(a.Userdata, data[n:a.Length])
 	return nil
 }
 

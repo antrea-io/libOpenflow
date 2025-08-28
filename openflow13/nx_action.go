@@ -1686,7 +1686,8 @@ func NewUserdata(userdata []byte) *NXActionController2PropUserdata {
 	a.PropHeader = new(PropHeader)
 	a.Type = NXAC2PT_USERDATA
 	a.Length = a.PropHeader.Len() + uint16(len(a.Userdata))
-	a.Userdata = userdata
+	a.Userdata = make([]byte, len(userdata))
+	copy(a.Userdata, userdata)
 	return a
 }
 

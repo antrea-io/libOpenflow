@@ -11,6 +11,7 @@ package openflow15
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"net"
 
 	"k8s.io/klog/v2"
@@ -236,21 +237,23 @@ func (p *PacketOut) AddAction(act Action) {
 	p.ActionsLen += act.Len()
 }
 
-func (p *PacketOut) Len() (n uint16) {
-	n += p.Header.Len()
-	n += 8 /* buffer_id, actions_len, pad[2] */
-	n += p.Match.Len()
+func (p *PacketOut) actualLength() int {
+	n := int(p.Header.Len()) + 8 + int(p.Match.Len())
 	for _, a := range p.Actions {
-		n += a.Len()
+		n += int(a.Len())
 	}
 	if p.Data != nil {
-		n += p.Data.Len()
+		n += int(p.Data.Len())
 	}
-	return
+	return n
+}
+
+func (p *PacketOut) Len() (n uint16) {
+	return uint16(p.actualLength())
 }
 
 func (p *PacketOut) MarshalBinary() (data []byte, err error) {
-	data = make([]byte, int(p.Len()))
+	data = make([]byte, p.actualLength())
 	var b []byte
 	n := 0
 
@@ -990,7 +993,7 @@ func (v *VendorHeader) Len() (n uint16) {
 
 func (v *VendorHeader) MarshalBinary() (data []byte, err error) {
 	v.Header.Length = v.Len()
-	data = make([]byte, v.Len())
+	data = make([]byte, 16)
 	b, err := v.Header.MarshalBinary()
 	n := 0
 	copy(data[n:], b)
@@ -1004,7 +1007,7 @@ func (v *VendorHeader) MarshalBinary() (data []byte, err error) {
 		if err != nil {
 			return nil, err
 		}
-		copy(data[n:], vd)
+		data = append(data, vd...)
 		n += len(vd)
 	}
 	return
@@ -1012,18 +1015,20 @@ func (v *VendorHeader) MarshalBinary() (data []byte, err error) {
 
 func (v *VendorHeader) UnmarshalBinary(data []byte) error {
 	if len(data) < 16 {
-		return errors.New("The []byte the wrong size to unmarshal an " +
+		return errors.New("The []byte the wrong size to unmarshal a " +
 			"VendorHeader message.")
 	}
-	v.Header.UnmarshalBinary(data)
+	err := v.Header.UnmarshalBinary(data)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal VendorHeader message: %v", err)
+	}
 	n := int(v.Header.Len())
 	v.Vendor = binary.BigEndian.Uint32(data[n:])
 	n += 4
 	v.ExperimenterType = binary.BigEndian.Uint32(data[n:])
 	n += 4
-	if n < int(v.Header.Length) {
-		var err error
-		v.VendorData, err = decodeVendorData(v.ExperimenterType, data[n:v.Header.Length])
+	if n < len(data) {
+		v.VendorData, err = decodeVendorData(v.ExperimenterType, data[n:])
 		if err != nil {
 			return err
 		}
