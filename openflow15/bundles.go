@@ -151,8 +151,9 @@ func (p *BundlePropertyExperimenter) UnmarshalBinary(data []byte) error {
 	n += 4
 	p.ExperimenterType = binary.BigEndian.Uint32(data[n:])
 	n += 4
-	if len(data) < int(p.Length) {
-		p.data = data[n:]
+	if n < int(p.Length) {
+		p.data = make([]byte, int(p.Length)-n)
+		copy(p.data, data[n:])
 	}
 	return nil
 }

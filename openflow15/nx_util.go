@@ -91,6 +91,10 @@ const (
 	NXTTMC_CLEAR
 )
 
+const (
+	AntreaLargePacket = 0x10002320 // Vendor type to mark that VendorHeader message length is overflow.
+)
+
 func newMatchFieldHeader(class uint16, field uint8, length uint8) *MatchField {
 	var fieldLength = length
 	return &MatchField{Class: class, Field: field, Length: fieldLength, HasMask: false}
