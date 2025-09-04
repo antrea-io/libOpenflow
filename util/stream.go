@@ -5,11 +5,15 @@ import (
 	"encoding/binary"
 	"net"
 	"strings"
+	"time"
 
 	"k8s.io/klog/v2"
 )
 
-const numParserGoroutines = 25
+const (
+	numParserGoroutines = 25
+	messageTimeout      = 10 * time.Second
+)
 
 type BufferPool struct {
 	Empty chan *bytes.Buffer
@@ -119,6 +123,7 @@ func (m *MessageStream) outbound() {
 		case msg := <-m.Outbound:
 			// Forward outbound messages to conn
 			data, _ := msg.MarshalBinary()
+			m.conn.SetWriteDeadline(time.Now().Add(messageTimeout))
 			if _, err := m.conn.Write(data); err != nil {
 				klog.ErrorS(err, "OutboundError")
 				m.Error <- err
@@ -138,7 +143,7 @@ func (m *MessageStream) outbound() {
 // Handle inbound messages
 func (m *MessageStream) inbound() {
 	msgLen := 0
-	hdr := 0
+	hdrLen := 0
 	hdrBuf := make([]byte, 4)
 
 	tmpBuf := make([]byte, 2048)
@@ -157,11 +162,11 @@ func (m *MessageStream) inbound() {
 		}
 
 		for i := 0; i < n; i++ {
-			if hdr < 4 {
-				hdrBuf[hdr] = tmpBuf[i]
+			if hdrLen < 4 {
+				hdrBuf[hdrLen] = tmpBuf[i]
+				hdrLen++
 				buf.WriteByte(tmpBuf[i])
-				hdr += 1
-				if hdr >= 4 {
+				if hdrLen >= 4 {
 					// MessageStream is not protocol agnostic. Reading length based
 					// on OpenFlow header field.
 					msgLen = int(binary.BigEndian.Uint16(hdrBuf[2:])) - 4
@@ -172,7 +177,7 @@ func (m *MessageStream) inbound() {
 				buf.WriteByte(tmpBuf[i])
 				msgLen = msgLen - 1
 				if msgLen == 0 {
-					hdr = 0
+					hdrLen = 0
 					m.dispatchMessage(buf)
 					buf = <-m.pool.Empty
 				}
