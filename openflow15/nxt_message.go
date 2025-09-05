@@ -3,6 +3,7 @@ package openflow15
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 
 	"k8s.io/klog/v2"
 
@@ -380,10 +381,8 @@ func (p *ContinuationPropStack) UnmarshalBinary(data []byte) error {
 		return errors.New("the []byte is too short to unmarshal a full ContinuationPropStack message")
 	}
 	n += int(p.PropHeader.Len())
-	for _, eachStack := range p.Stack {
-		data[n] = eachStack
-		n++
-	}
+	p.Stack = make([]byte, int(p.Length)-n)
+	copy(p.Stack, data[n:])
 	return nil
 }
 
@@ -810,7 +809,7 @@ func (p *PacketIn2PropPacket) UnmarshalBinary(data []byte) error {
 		return err
 	}
 	if len(data) < int(p.Length) {
-		return errors.New("the []byte is too short to unmarshal a full PacketIn2PropPacket message")
+		return fmt.Errorf("the []byte with length %d is too short to unmarshal a full PacketIn2PropPacket message with %d bytes", len(data), p.Length)
 	}
 	n += int(p.PropHeader.Len())
 
@@ -1195,6 +1194,7 @@ func DecodePacketIn2Prop(data []byte) (Property, error) {
 	var p Property
 	switch t {
 	case NXPINT_PACKET:
+		klog.V(5).InfoS("Decoding a packetIn with property NXPINT_PACKET", "data_length", len(data))
 		p = new(PacketIn2PropPacket)
 	case NXPINT_FULL_LEN:
 		p = new(PacketIn2PropFullLen)
@@ -1338,6 +1338,7 @@ func decodeVendorData(experimenterType uint32, data []byte) (msg util.Message, e
 		msg = new(BundleAdd)
 	case Type_PacketIn2:
 		msg = new(PacketIn2)
+		klog.V(5).InfoS("Decoding a PacketIn2 message", "data_length", len(data))
 	}
 	err = msg.UnmarshalBinary(data)
 	if err != nil {

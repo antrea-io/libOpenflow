@@ -11,6 +11,7 @@ package openflow15
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"net"
 
 	"k8s.io/klog/v2"
@@ -1012,18 +1013,25 @@ func (v *VendorHeader) MarshalBinary() (data []byte, err error) {
 
 func (v *VendorHeader) UnmarshalBinary(data []byte) error {
 	if len(data) < 16 {
-		return errors.New("The []byte the wrong size to unmarshal an " +
+		return errors.New("The []byte the wrong size to unmarshal a " +
 			"VendorHeader message.")
 	}
-	v.Header.UnmarshalBinary(data)
+	err := v.Header.UnmarshalBinary(data)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal VendorHeader message: %v", err)
+	}
 	n := int(v.Header.Len())
 	v.Vendor = binary.BigEndian.Uint32(data[n:])
 	n += 4
 	v.ExperimenterType = binary.BigEndian.Uint32(data[n:])
 	n += 4
-	if n < int(v.Header.Length) {
-		var err error
-		v.VendorData, err = decodeVendorData(v.ExperimenterType, data[n:v.Header.Length])
+	headerLength := int(v.Header.Length)
+	if v.Vendor == AntreaLargePacket {
+		headerLength += 1 << 16
+	}
+	if n < headerLength {
+		klog.V(5).InfoS("Decoding the message content of a VendorData message", "message_length", headerLength, "Vendor", v.Vendor)
+		v.VendorData, err = decodeVendorData(v.ExperimenterType, data[n:headerLength])
 		if err != nil {
 			return err
 		}

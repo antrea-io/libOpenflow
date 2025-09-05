@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"net"
 	"strings"
 
@@ -10,20 +11,6 @@ import (
 )
 
 const numParserGoroutines = 25
-
-type BufferPool struct {
-	Empty chan *bytes.Buffer
-}
-
-func NewBufferPool() *BufferPool {
-	m := new(BufferPool)
-	m.Empty = make(chan *bytes.Buffer, 50)
-
-	for i := 0; i < 50; i++ {
-		m.Empty <- bytes.NewBuffer(make([]byte, 0, 2048))
-	}
-	return m
-}
 
 // Parser interface
 type Parser interface {
@@ -34,7 +21,7 @@ type streamWorker struct {
 	Full chan *bytes.Buffer
 }
 
-func (w *streamWorker) parse(stopCh chan bool, parser Parser, inbound chan Message, empty chan *bytes.Buffer) {
+func (w *streamWorker) parse(stopCh chan bool, parser Parser, inbound chan Message) {
 	for {
 		select {
 		case b := <-w.Full:
@@ -45,8 +32,6 @@ func (w *streamWorker) parse(stopCh chan bool, parser Parser, inbound chan Messa
 			} else {
 				inbound <- msg
 			}
-			b.Reset()
-			empty <- b
 		case <-stopCh:
 			return
 		}
@@ -55,7 +40,6 @@ func (w *streamWorker) parse(stopCh chan bool, parser Parser, inbound chan Messa
 
 type MessageStream struct {
 	conn net.Conn
-	pool *BufferPool
 	// Message parser
 	parser Parser
 	// Channel to shut down the parser goroutine
@@ -79,7 +63,6 @@ type MessageStream struct {
 func NewMessageStream(conn net.Conn, parser Parser) *MessageStream {
 	m := &MessageStream{
 		conn,
-		NewBufferPool(),
 		parser,
 		make(chan bool, 1),
 		0,
@@ -95,7 +78,7 @@ func NewMessageStream(conn net.Conn, parser Parser) *MessageStream {
 			Full: make(chan *bytes.Buffer),
 		}
 		m.workers[i] = worker
-		go worker.parse(m.parserShutdown, m.parser, m.Inbound, m.pool.Empty)
+		go worker.parse(m.parserShutdown, m.parser, m.Inbound)
 	}
 	go m.outbound()
 	go m.inbound()
@@ -137,12 +120,9 @@ func (m *MessageStream) outbound() {
 
 // Handle inbound messages
 func (m *MessageStream) inbound() {
-	msgLen := 0
-	hdr := 0
-	hdrBuf := make([]byte, 4)
-
+	buf := &bytes.Buffer{}
+	totalLen := 0
 	tmpBuf := make([]byte, 2048)
-	buf := <-m.pool.Empty
 	for {
 		n, err := m.conn.Read(tmpBuf)
 		if err != nil {
@@ -156,40 +136,76 @@ func (m *MessageStream) inbound() {
 			return
 		}
 
-		for i := 0; i < n; i++ {
-			if hdr < 4 {
-				hdrBuf[hdr] = tmpBuf[i]
-				buf.WriteByte(tmpBuf[i])
-				hdr += 1
-				if hdr >= 4 {
-					// MessageStream is not protocol agnostic. Reading length based
-					// on OpenFlow header field.
-					msgLen = int(binary.BigEndian.Uint16(hdrBuf[2:])) - 4
+		// Append the bytes read from the connection to buf.
+		buf.Write(tmpBuf[:n])
+
+		// Read from the connection until the OpenFlow message header is retrieved.
+		for buf.Len() >= 4 {
+			if totalLen == 0 {
+				// Read the OpenFlow message length.
+				msgType := int(buf.Bytes()[1])
+				totalLen = int(binary.BigEndian.Uint16(buf.Bytes()[2:4]))
+				// msgType == openflow15.Type_Experimenter
+				if msgType == 4 {
+					// The minimum length of a valid VendorHeader message is 16 bytes.
+					if buf.Len() < 16 {
+						break
+					}
+					experimenterType := binary.BigEndian.Uint32(buf.Bytes()[12:])
+					// experimenterType == openflow15.Type_PacketIn2
+					if experimenterType == 30 {
+						// The first 4 byte of a PacketIn2 message is needed to check the packet length.
+						if buf.Len() < 20 {
+							break
+						}
+						// According to OVS implementation, the first property of a PacketIn2 message is NXPINT_PACKET.
+						pktProp := int(binary.BigEndian.Uint16(buf.Bytes()[16:]))
+						// pkgProp == openflow15.NXPINT_PACKET
+						if pktProp == 0 {
+							pktLength := int(binary.BigEndian.Uint16(buf.Bytes()[18:]))
+							if totalLen < pktLength {
+								totalLen += 1 << 16
+								klog.V(2).InfoS("Oversize packet detected: OpenFlow PacketIn message length overflowed", "message_length", totalLen)
+								// Reset the VendorHeader.Vendor field to mark the message is oversize.
+								binary.BigEndian.PutUint32(buf.Bytes()[8:12], 0x10002320)
+							}
+						}
+					}
 				}
-				continue
-			}
-			if msgLen > 0 {
-				buf.WriteByte(tmpBuf[i])
-				msgLen = msgLen - 1
-				if msgLen == 0 {
-					hdr = 0
-					m.dispatchMessage(buf)
-					buf = <-m.pool.Empty
+				klog.V(5).InfoS("Expected OpenFlow message", "length", totalLen)
+
+				// Return error if the message is shorter than the minimum length of a standard OpenFlow message.
+				if totalLen < 8 {
+					klog.Error("Buffer too small to parse OpenFlow messages")
+					err = fmt.Errorf("invalid message with length %d is received", totalLen)
+					m.Error <- err
+					m.Shutdown <- true
+					return
 				}
-				continue
 			}
+
+			// If the openflow message is not completed, continue reading from the connection.
+			if buf.Len() < totalLen {
+				break
+			}
+
+			// Dispatch the message bytes to worker.
+			msgBytes := make([]byte, totalLen)
+			if _, err = buf.Read(msgBytes); err != nil {
+				// io.EOF is the only error returned by buf.Read.
+				klog.ErrorS(err, "Failed to read bytes from buffer")
+				m.Error <- err
+				m.Shutdown <- true
+				return
+			}
+
+			klog.V(5).InfoS("Received message", "message_length", totalLen, "buffer_length", len(msgBytes))
+			xid := binary.BigEndian.Uint32(msgBytes[4:])
+			workerKey := int(xid % uint32(len(m.workers)))
+			m.workers[workerKey].Full <- bytes.NewBuffer(msgBytes)
+
+			// Reset totalLen to consume the next message.
+			totalLen = 0
 		}
 	}
-}
-
-// Dispatch the message to streamWorker according to Xid in the message Header
-func (m *MessageStream) dispatchMessage(b *bytes.Buffer) {
-	msgBytes := b.Bytes()
-	if len(msgBytes) < 8 {
-		klog.Error("Buffer too small to parse OpenFlow messages")
-		return
-	}
-	xid := binary.BigEndian.Uint32(msgBytes[4:])
-	workerKey := int(xid % uint32(len(m.workers)))
-	m.workers[workerKey].Full <- b
 }
