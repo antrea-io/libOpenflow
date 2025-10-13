@@ -176,6 +176,7 @@ func DecodeNxAction(data []byte) (Action, error) {
 	case NXAST_SAMPLE2:
 	case NXAST_OUTPUT_TRUNC:
 	case NXAST_CT_CLEAR:
+		a = new(NXActionConnTrackClear)
 	case NXAST_CT_RESUBMIT:
 		a = new(NXActionResubmitTable)
 		a.(*NXActionResubmitTable).withCT = true
@@ -370,6 +371,48 @@ func NewNXActionConnTrack() *NXActionConnTrack {
 	a.NXActionHeader = NewNxActionHeader(NXAST_CT)
 	a.Length = a.NXActionHeader.Len() + 14
 	a.RecircTable = NX_CT_RECIRC_NONE
+	return a
+}
+
+type NXActionConnTrackClear struct {
+	*NXActionHeader
+}
+
+func (a *NXActionConnTrackClear) Len() (n uint16) {
+	return a.NXActionHeader.Len() + 6
+}
+
+func (a *NXActionConnTrackClear) MarshalBinary() (data []byte, err error) {
+	headerData, err := a.NXActionHeader.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+
+	// Append padding bytes to reach 16 bytes total
+	data = make([]byte, 16)
+	copy(data, headerData)
+
+	return data, nil
+}
+
+func (a *NXActionConnTrackClear) UnmarshalBinary(data []byte) error {
+	if len(data) < 16 {
+		return fmt.Errorf("insufficient data for CTClearAction")
+	}
+
+	a.NXActionHeader = new(NXActionHeader)
+	err := a.NXActionHeader.UnmarshalBinary(data[:10])
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func NewNXActionConnTrackClear() *NXActionConnTrackClear {
+	a := new(NXActionConnTrackClear)
+	a.NXActionHeader = NewNxActionHeader(NXAST_CT_CLEAR)
+	a.NXActionHeader.Length = 16
 	return a
 }
 
