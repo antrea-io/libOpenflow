@@ -373,3 +373,32 @@ func NewNxARPTpaMatchField(addr net.IP, mask net.IP) *MatchField {
 
 	return field
 }
+
+func NewNxRegField(regIx uint8, value uint64, mask *uint64) *MatchField {
+	if regIx > 7 {
+		panic(fmt.Sprintf("invalid regIx %d", regIx))
+	}
+	f := new(MatchField)
+	f.Class = OXM_CLASS_PACKET_REGS
+	f.Field = OXM_PACKET_REG0 + regIx
+	f.HasMask = false
+
+	valField := new(ByteArrayField)
+	valField.Length = 8
+	valField.Data = make([]byte, 8)
+	binary.BigEndian.PutUint64(valField.Data, value)
+	f.Value = valField
+	f.Length = uint8(valField.Len())
+
+	// Add the mask
+	if mask != nil {
+		maskField := new(ByteArrayField)
+		maskField.Length = 8
+		maskField.Data = make([]byte, 8)
+		binary.BigEndian.PutUint64(maskField.Data, *mask)
+		f.HasMask = true
+		f.Length += uint8(maskField.Len())
+	}
+
+	return f
+}
