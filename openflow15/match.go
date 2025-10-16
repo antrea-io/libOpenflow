@@ -367,7 +367,7 @@ func DecodeMatchField(class uint16, field uint8, length uint8, hasMask bool, dat
 		case OXM_FIELD_SCTP_DST:
 			val = new(PortField)
 		case OXM_FIELD_ICMPV4_TYPE:
-			val = new(IcmpTypeField)
+			val = new(Icmpv4TypeField)
 		case OXM_FIELD_ICMPV4_CODE:
 			val = new(IcmpCodeField)
 		case OXM_FIELD_ARP_OP:
@@ -387,7 +387,7 @@ func DecodeMatchField(class uint16, field uint8, length uint8, hasMask bool, dat
 		case OXM_FIELD_IPV6_FLABEL:
 			val = new(Ipv6FLabelField)
 		case OXM_FIELD_ICMPV6_TYPE:
-			val = new(IcmpTypeField)
+			val = new(Icmpv6TypeField)
 		case OXM_FIELD_ICMPV6_CODE:
 			val = new(IcmpCodeField)
 		case OXM_FIELD_IPV6_ND_TARGET:
@@ -469,7 +469,7 @@ func DecodeMatchField(class uint16, field uint8, length uint8, hasMask bool, dat
 		case NXM_NX_IPV6_DST:
 			val = new(Ipv6DstField)
 		case NXM_NX_ICMPV6_TYPE:
-			val = new(IcmpTypeField)
+			val = new(Icmpv6TypeField)
 		case NXM_NX_ICMPV6_CODE:
 			val = new(IcmpCodeField)
 		case NXM_NX_ND_TARGET:
@@ -2131,27 +2131,86 @@ func NewActsetOutputField(actsetOutputPort uint32) *MatchField {
 	return f
 }
 
-type IcmpTypeField struct {
+type Icmpv4TypeField struct {
 	Type uint8
 }
 
-func (f *IcmpTypeField) Len() uint16 {
+func (f *Icmpv4TypeField) Len() uint16 {
 	return 1
 }
 
-func (f *IcmpTypeField) MarshalBinary() (data []byte, err error) {
+func (f *Icmpv4TypeField) MarshalBinary() (data []byte, err error) {
 	data = make([]byte, 1)
 	data[0] = f.Type
 	return
 }
 
-func (f *IcmpTypeField) UnmarshalBinary(data []byte) error {
+func (f *Icmpv4TypeField) UnmarshalBinary(data []byte) error {
 	if len(data) < int(f.Len()) {
-		return errors.New("The byte array has wrong size to unmarshal IcmpTypeField message")
+		return errors.New("The byte array has wrong size to unmarshal Icmpv4TypeField message")
 	}
 	f.Type = data[0]
 	return nil
 }
+
+type Icmpv6TypeField struct {
+	Type uint8
+}
+
+func (f *Icmpv6TypeField) Len() uint16 {
+	return 1
+}
+
+func (f *Icmpv6TypeField) MarshalBinary() (data []byte, err error) {
+	data = make([]byte, 1)
+	data[0] = f.Type
+	return
+}
+
+func (f *Icmpv6TypeField) UnmarshalBinary(data []byte) error {
+	if len(data) < int(f.Len()) {
+		return errors.New("The byte array has wrong size to unmarshal Icmpv6TypeField message")
+	}
+	f.Type = data[0]
+	return nil
+}
+
+// Return a MatchField for icmp v4 type matching
+func NewIcmpv4TypeField(icmpType uint8) *MatchField {
+	f := new(MatchField)
+	f.Class = OXM_CLASS_OPENFLOW_BASIC
+	f.Field = OXM_FIELD_ICMPV4_TYPE
+	f.HasMask = false
+
+	icmpTypeField := new(Icmpv4TypeField)
+	icmpTypeField.Type = icmpType
+	f.Value = icmpTypeField
+	f.Length = uint8(icmpTypeField.Len())
+
+	return f
+}
+
+// Return a MatchField for icmp v6 type matching
+func NewIcmpv6TypeField(icmpType uint8) *MatchField {
+	f := new(MatchField)
+	f.Class = OXM_CLASS_OPENFLOW_BASIC
+	f.Field = OXM_FIELD_ICMPV6_TYPE
+	f.HasMask = false
+
+	icmpTypeField := new(Icmpv6TypeField)
+	icmpTypeField.Type = icmpType
+	f.Value = icmpTypeField
+	f.Length = uint8(icmpTypeField.Len())
+
+	return f
+}
+
+// Backward compatibility: keep historical symbol and constructors
+// so downstream code (e.g. ofnet) building with older names still compiles.
+// IcmpTypeField historically represented ICMP type without v4/v6 distinction;
+// alias it to Icmpv4TypeField for compatibility. Decode paths still produce
+// v4/v6-specific types when reading flows.
+type IcmpTypeField = Icmpv4TypeField
 
 type IcmpCodeField struct {
 	Code uint8
